@@ -11,8 +11,13 @@
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
+      "Bash(cat .env)",
+      "Bash(cat .env*)",
       "Bash(aws secretsmanager get-secret-value:*)",
-      "Bash(aws ssm get-parameter:*)"
+      "Bash(aws ssm get-parameter:*)",
+      "Bash(aws sts get-session-token:*)",
+      "Bash(aws sts get-federation-token:*)",
+      "Bash(aws ecr get-login-password:*)"
     ],
     "ask": [
       "Bash(aws * delete-*:*)",
