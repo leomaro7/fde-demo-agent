@@ -118,6 +118,58 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
 
 `HarnessToolUseStatus`: `success` / `error`。
 
+### `AWS::BedrockAgentCore::Harness` の CFn プロパティ（2026-08-08 確認）
+
+出典は `@aws/agentcore-cdk@0.1.0-alpha.46` の
+`dist/cdk/constructs/components/primitives/harness/harness-cfn-mapping.js`（全文を読んだ）。
+**`CfnResource` で直書きするときはこの形にする。**
+
+```jsonc
+{
+  "HarnessName": "instance_slug",          // createOnly・40 文字以内
+  "ExecutionRoleArn": "arn:aws:iam::...",
+  "Model": { "BedrockModelConfig": {
+      "ModelId": "jp.anthropic.claude-...",
+      "Temperature": 0.2, "TopP": 0.9, "MaxTokens": 4096,
+      "ApiFormat": "converse_stream"       // converse_stream | responses | chat_completions
+  }},
+  "SystemPrompt": [ { "Text": "..." } ],   // ★ 配列。オブジェクトのキーは Text
+  "Tools": [ { "Type": "inline_function", "Name": "search",
+               "Config": { "InlineFunction": { "Description": "...", "InputSchema": {...} } } },
+             { "Type": "agentcore_code_interpreter", "Name": "code",
+               "Config": { "AgentCoreCodeInterpreter": {} } } ],
+  "Memory": { "Disabled": {} },            // ★ 省略禁止。下記参照
+  "MaxIterations": 20, "MaxTokens": 8192, "TimeoutSeconds": 300,
+  "AuthorizerConfiguration": { "CustomJWTAuthorizer": {
+      "DiscoveryUrl": "https://cognito-idp.<region>.amazonaws.com/<poolId>/.well-known/openid-configuration",
+      "AllowedClients": [ "<clientId>" ],
+      "CustomClaims": [ {
+        "InboundTokenClaimName": "cognito:groups",
+        "InboundTokenClaimValueType": "STRING_LIST",
+        "AuthorizingClaimMatchValue": {
+          "ClaimMatchValue": { "MatchValueString": "<slug>" },
+          "ClaimMatchOperator": "CONTAINS"
+        }
+      } ]
+  }},
+  "Tags": [ { "Key": "...", "Value": "..." } ]
+}
+```
+
+| 落とし穴 | 内容 |
+|---|---|
+| **`Memory` を省略してはいけない** | **省略するとサービスが managed memory を勝手に用意する。** 「メモリ無し」を意味させるには `{ "Disabled": {} }` を明示する（公式実装のコメントに明記） |
+| `SystemPrompt` | **文字列ではなく `[{ Text }]` の配列**。`Text` は `minLength: 1`。空文字を渡すと `CREATE_FAILED` |
+| `Environment.AgentCoreRuntimeEnvironment.NetworkConfiguration` | **createOnly**。VPC を使わないなら `Environment` ごと省略する |
+| 戻り値 | **`Ref` は Arn**。`HarnessId` / `Status` / `Version` / `AgentRuntimeArn` は `Fn::GetAtt` |
+
+ツール `Config` のキー（`Type` の値と対応）:
+`RemoteMcp{Url,Headers}` / `AgentCoreBrowser{BrowserArn}` /
+`AgentCoreCodeInterpreter{CodeInterpreterArn}` /
+`AgentCoreGateway{GatewayArn,OutboundAuth}` / `InlineFunction{Description,InputSchema}`。
+
+`Model` の他プロバイダ: `OpenAiModelConfig` / `GeminiModelConfig` / `LiteLlmModelConfig`。
+
 ### event stream のフレーム構造
 
 ```
