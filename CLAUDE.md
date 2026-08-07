@@ -16,9 +16,14 @@
 
 **実装は 1 行もない。** ここにあるのはルールと道具と、前身から引き継いだ知識だけ。
 
-**最初に決めるのは要件書 7.0「そもそも何を自作するのか」。**
-`AWS::BedrockAgentCore::Harness` と公式の CDK コンストラクトが存在するため、
-何を書き、何を任せるかが未決。**ここを決めずに作り始めない。**
+**要件書 7.0「そもそも何を自作するのか」は決着した**（2026-08-08）。
+設計は [docs/superpowers/specs/2026-08-08-what-to-build-design.md](docs/superpowers/specs/2026-08-08-what-to-build-design.md)。
+
+- 案件リソースは**自前 CDK + `CfnResource`**。`@aws/agentcore-cdk`（alpha）に依存しない
+- ツールは**ブラウザ側**（`inline_function`）。**Code Interpreter だけ Harness 側**
+- 案件の設定は**自作スキーマ・TypeScript**
+
+**次は設計書 7 章の順序で作る。** 未確認が 5 件あり、うち 2 件は方針を覆しうる。
 
 ## 着手前に読むもの
 
