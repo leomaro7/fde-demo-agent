@@ -1,0 +1,52 @@
+{
+  "env": {
+    "AWS_REGION": "ap-northeast-1"
+  },
+  "enabledPlugins": {
+    "aws-core@claude-plugins-official": true,
+    "aws-agents@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(aws secretsmanager get-secret-value:*)",
+      "Bash(aws ssm get-parameter:*)"
+    ],
+    "ask": [
+      "Bash(aws * delete-*:*)",
+      "Bash(aws * remove-*:*)",
+      "Bash(npx cdk deploy:*)",
+      "Bash(npx cdk destroy:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo create:*)",
+      "Bash(rm -rf:*)"
+    ],
+    "allow": [
+      "Bash(aws sts get-caller-identity:*)",
+      "Bash(aws * describe-*:*)",
+      "Bash(aws * list-*:*)",
+      "Bash(aws * get-*:*)",
+      "Bash(aws * --generate-cli-skeleton:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-context.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

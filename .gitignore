@@ -1,0 +1,16 @@
+node_modules/
+dist/
+cdk.out/
+*.tsbuildinfo
+__pycache__/
+
+# 案件 slug 由来のクライアント名が allow ルールに溜まる
+.claude/settings.local.json
+
+# AWS アカウント ID や案件ごとの識別子が入る。コミットしない
+.env
+.env.*
+!.env.example
+
+.DS_Store
+*.log
