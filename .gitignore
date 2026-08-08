@@ -2,6 +2,7 @@ node_modules/
 dist/
 cdk.out/
 *.tsbuildinfo
+*.tgz
 __pycache__/
 
 # 案件 slug 由来のクライアント名が allow ルールに溜まる
