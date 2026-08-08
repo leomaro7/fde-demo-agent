@@ -390,10 +390,12 @@ function synth(instance = 'demo1') {
 }
 
 describe('FoundationStack', () => {
-  it('Cognito ドメインのプレフィックスは instance で、アカウント ID を含まない', () => {
-    const t = synth('demo1');
-    t.hasResourceProperties('AWS::Cognito::UserPoolDomain', { Domain: 'demo1' });
-    expect(JSON.stringify(t.toJSON())).not.toContain('123456789012');
+  it('Cognito ドメインのプレフィックスは instance そのもの', () => {
+    // 厳密一致なので、アカウント ID が混ざっていればここで落ちる。
+    // テンプレート全文を走査してはいけない。実行ロールの信頼ポリシーは
+    // aws:SourceAccount にアカウント ID の実値を要求するため両立しない。
+    // 守るべきなのは「利用者に見える名前」だけ（要件書 5.3）。
+    synth('demo1').hasResourceProperties('AWS::Cognito::UserPoolDomain', { Domain: 'demo1' });
   });
 
   it('Amplify アプリ名に instance が入る', () => {
