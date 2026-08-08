@@ -1663,7 +1663,7 @@ export function parseFrame(frame: Frame): StreamEvent | null {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/** payload の形はイベント種別ごとに違う。呼び出し側の switch で絞る。 */
 function decodeJson(payload: Uint8Array): any {
   try {
     return JSON.parse(new TextDecoder().decode(payload));
