@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { App } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import { DemoStack } from './demo-stack.js';
+import { FoundationStack } from './foundation-stack.js';
 import { demo } from '../../demos/smoke/demo.js';
 
 function synth() {
@@ -45,5 +46,28 @@ describe('DemoStack', () => {
     expect(Object.keys(outputs)).toEqual(
       expect.arrayContaining(['DemoUrl', 'HarnessArn']),
     );
+  });
+
+  it('案件スタックは土台スタックに明示的に依存する（Fn.importValue はリテラル文字列で CDK が依存を推論できないため）', () => {
+    // Fn.importValue は文字列引数を渡すだけで、CDK のスタック間依存グラフには
+    // 載らない。addStackDependency（app.ts で実際に呼んでいるもの）を呼んで
+    // 初めて dependencies に載ることを確認する。DemoStack 単体の synth() では
+    // 依存先スタックが存在しないため検証できず、FoundationStack と同じ App に
+    // 載せて組み立てる必要がある。
+    const app = new App();
+    const foundationStackName = 'FdeDemo-demo1-Foundation';
+    const foundation = new FoundationStack(app, foundationStackName, {
+      instance: 'demo1',
+      env: { account: '123456789012', region: 'ap-northeast-1' },
+    });
+    const demoStack = new DemoStack(app, 'FdeDemo-demo1-smoke', {
+      instance: 'demo1',
+      foundationStackName,
+      demo,
+      env: { account: '123456789012', region: 'ap-northeast-1' },
+    });
+    demoStack.addStackDependency(foundation);
+
+    expect(demoStack.dependencies).toContain(foundation);
   });
 });
