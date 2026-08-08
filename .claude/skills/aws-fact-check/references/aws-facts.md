@@ -36,6 +36,8 @@
 | `AWS::BedrockAgentCore::Harness` | **存在する**。`describe-type` で `LIVE` / `FULLY_MUTABLE`。ただし `LatestPublicVersion` は `null`（公開レジストリに版が無い＝プライベート登録） |
 | `@aws/agentcore-cdk` | **Harness を扱える**。`AgentCoreHarness`（`AWS::BedrockAgentCore::Harness` を CfnResource で生成）と `AgentCoreHarnessEnvironment`（+ 実行ロール）がある。版は **`0.1.0-alpha.46`（alpha）** |
 | aws-cdk-lib の L1 | **`CfnHarness` は `aws-cdk-lib@2.263.0` に存在する**（`aws-cdk-lib/aws-bedrockagentcore`）。**`@aws/agentcore-cdk` のソースコメントは「L1 が無い」と書いているが、それは古い aws-cdk-lib を前提にした記述。信じないこと** |
+| **L1 が守ってくれる範囲** | **プロパティ名と構造だけ。列挙値は守られない。** `inboundTokenClaimValueType` も `claimMatchOperator` も型は素の `string` で、`tsc` は不正な値を通す。**列挙値は必ず CLI ヘルプの `Possible values` で確かめること** |
+| 列挙値の誤りを拾う最後の砦 | **`cdk synth` 時の CloudFormation スキーマ検証**（警告として出る）。`STRING_LIST` はこれで見つかった。**警告を読み飛ばさない** |
 | CDK が対応する認証 | `AuthorizerConfiguration.CustomJWTAuthorizer` を `DiscoveryUrl` / `AllowedClients` / `CustomClaims` まで写像する。**Cognito グループでの案件分離は CDK だけで書ける** |
 | CFn のツール種別 | `RemoteMcp` / `AgentCoreGateway` / `AgentCoreBrowser` / `AgentCoreCodeInterpreter` / `InlineFunction`。**API と同じ 5 種** |
 | `HarnessName` | CFn では **createOnly**。物理名は `${projectName}_${name}`、**40 文字以内**（CDK が synth 前に検証する） |

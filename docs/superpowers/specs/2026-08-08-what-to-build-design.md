@@ -107,7 +107,14 @@ Code Interpreter だけは Harness 側のままにする。前身のデータ分
 直書きをやめた理由は 2 つ。`aws-cdk-lib` は既に依存に入っているので新たな依存が増えない。
 そして手書きの PascalCase マッピングは実際に誤りを生んだ
 （`InboundTokenClaimValueType` を存在しない `STRING_LIST` と書いていた。正しくは `STRING_ARRAY`）。
-**L1 ならプロパティ名をコンパイラが検査する。**
+
+**ただし L1 が守るのはプロパティ名と構造だけで、列挙値は守らない。**
+`inboundTokenClaimValueType` も `claimMatchOperator` も L1 の型は素の `string` で、
+`tsc` は不正な値を通す。実際に `STRING_LIST` を見つけたのはコンパイラではなく、
+**`cdk synth` 時の CloudFormation スキーマ検証の警告**だった。
+
+**列挙値は CLI ヘルプの `Possible values` で確かめる。** L1 に移しても
+この手順は省けない。「L1 だから安全」と思うのが一番危ない。
 
 1. **alpha への依存を土台の中心部に埋め込まない**
 2. **`harnessDir` 必須という構造依存を持ち込まない。**

@@ -43,6 +43,8 @@ User Pool Group + Amplify Branch）を積む。Harness は `AWS::BedrockAgentCor
 - **`Environment` は省略する。** VPC を使わないため（`NetworkConfiguration` は createOnly）
 - **一時ファイルを使わない。** 設定はリポジトリに置く（`/tmp` に書かない）
 - **`aws-facts.md` に無い AWS 仕様を推測で書かない。** `--generate-cli-skeleton` で確かめる
+- **列挙値は L1 の型では守られない。** `inboundTokenClaimValueType` などは素の `string`。
+  `aws <service> <operation> help` の `Possible values` で確かめる
 - **コミットは Conventional Commits。** 本文には何をしたかより**なぜそうしたか**を書く。
   `Co-Authored-By` トレーラーは付けない（リポジトリの既存コミットに無い）
 
@@ -803,7 +805,11 @@ aws-cdk-lib の L1（CfnHarness）を使う。@aws/agentcore-cdk は L2 を持�
 仕組みを土台の中心部に埋めたくないので依存しない。
 
 プロパティ名を手書きすると誤る。実際 inboundTokenClaimValueType を存在しない
-STRING_LIST と書いていた（正しくは STRING_ARRAY）。L1 ならコンパイラが検査する。
+STRING_LIST と書いていた（正しくは STRING_ARRAY）。L1 なら名前と構造は守られる。
+
+ただし列挙値は守られない。L1 の型は素の string で、tsc は不正な値を通す。
+STRING_LIST を見つけたのは cdk synth の CloudFormation スキーマ検証の警告だった。
+列挙値は CLI ヘルプの Possible values で確かめること。
 
 Memory を省略しない。省略するとサービスが managed memory を勝手に用意する。
 「メモリ無し」を意味させるには Disabled を明示する必要がある。テストで固定した。
