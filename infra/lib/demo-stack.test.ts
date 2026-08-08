@@ -1,0 +1,49 @@
+import { describe, it, expect } from 'vitest';
+import { App } from 'aws-cdk-lib';
+import { Template, Match } from 'aws-cdk-lib/assertions';
+import { DemoStack } from './demo-stack.js';
+import { demo } from '../../demos/smoke/demo.js';
+
+function synth() {
+  const app = new App();
+  const stack = new DemoStack(app, 'FdeDemo-demo1-smoke', {
+    instance: 'demo1',
+    foundationStackName: 'FdeDemo-demo1-Foundation',
+    demo,
+    env: { account: '123456789012', region: 'ap-northeast-1' },
+  });
+  return Template.fromStack(stack);
+}
+
+describe('DemoStack', () => {
+  it('案件ごとにグループを作る', () => {
+    synth().hasResourceProperties('AWS::Cognito::UserPoolGroup', { GroupName: 'smoke' });
+  });
+
+  it('コールバックにブランチ URL と localhost の両方を登録する', () => {
+    synth().hasResourceProperties('AWS::Cognito::UserPoolClient', {
+      CallbackURLs: Match.arrayWith(['http://localhost:5173/']),
+    });
+  });
+
+  it('Amplify ブランチを案件スタックが持つ', () => {
+    synth().hasResourceProperties('AWS::Amplify::Branch', { BranchName: 'smoke' });
+  });
+
+  it('Harness を 1 つ作る', () => {
+    synth().resourceCountIs('AWS::BedrockAgentCore::Harness', 1);
+  });
+
+  it('土台の値は ImportValue で引く（ハードコードしない）', () => {
+    const json = JSON.stringify(synth().toJSON());
+    expect(json).toContain('FdeDemo-demo1-Foundation-ExecutionRoleArn');
+    expect(json).toContain('FdeDemo-demo1-Foundation-AmplifyAppId');
+  });
+
+  it('デモの URL と Harness ARN を出力する', () => {
+    const outputs = synth().findOutputs('*');
+    expect(Object.keys(outputs)).toEqual(
+      expect.arrayContaining(['DemoUrl', 'HarnessArn']),
+    );
+  });
+});
