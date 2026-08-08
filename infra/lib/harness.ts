@@ -1,4 +1,4 @@
-import { CfnResource, Fn } from 'aws-cdk-lib';
+import { CfnHarness } from 'aws-cdk-lib/aws-bedrockagentcore';
 import { Construct } from 'constructs';
 import { toHarnessName } from './naming.js';
 
@@ -23,11 +23,13 @@ export interface HarnessProps {
 }
 
 /**
- * AWS::BedrockAgentCore::Harness の CfnResource ラッパ。
+ * AWS::BedrockAgentCore::Harness を作る。
  *
- * aws-cdk-lib に L1 が無い。@aws/agentcore-cdk は L2 を持つが alpha 版で、
+ * aws-cdk-lib の L1（CfnHarness）を使う。@aws/agentcore-cdk は L2 を持つが alpha 版で、
  * harness.json を置くディレクトリを必須にするため依存しない。
- * プロパティ名は同パッケージの harness-cfn-mapping.js から写した（aws-facts.md 参照）。
+ *
+ * 許容値の根拠は aws-facts.md にある。とくに inboundTokenClaimValueType は
+ * STRING と STRING_ARRAY の 2 つだけで、STRING_LIST は存在しない。
  */
 export class Harness extends Construct {
   readonly harnessArn: string;
@@ -39,48 +41,46 @@ export class Harness extends Construct {
 
     this.harnessName = toHarnessName(props.instance, props.slug);
 
-    const resource = new CfnResource(this, 'Resource', {
-      type: 'AWS::BedrockAgentCore::Harness',
-      properties: {
-        HarnessName: this.harnessName,
-        ExecutionRoleArn: props.executionRoleArn,
-        Model: { BedrockModelConfig: { ModelId: props.modelId, ApiFormat: 'converse_stream' } },
-        // 文字列ではなく配列。Text は minLength: 1
-        SystemPrompt: [{ Text: props.systemPrompt }],
-        Tools: props.tools.map(toolToCfn),
-        // 省略するとサービスが managed memory を勝手に用意する。無効を明示する
-        Memory: { Disabled: {} },
-        AuthorizerConfiguration: {
-          CustomJWTAuthorizer: {
-            DiscoveryUrl: props.discoveryUrl,
-            AllowedClients: [props.allowedClientId],
-            CustomClaims: [
-              {
-                InboundTokenClaimName: 'cognito:groups',
-                InboundTokenClaimValueType: 'STRING_LIST',
-                AuthorizingClaimMatchValue: {
-                  ClaimMatchValue: { MatchValueString: props.slug },
-                  // cognito:groups は配列。EQUALS は STRING 型専用
-                  ClaimMatchOperator: 'CONTAINS',
-                },
+    const resource = new CfnHarness(this, 'Resource', {
+      harnessName: this.harnessName,
+      executionRoleArn: props.executionRoleArn,
+      model: { bedrockModelConfig: { modelId: props.modelId, apiFormat: 'converse_stream' } },
+      // 文字列ではなく配列。text は minLength: 1
+      systemPrompt: [{ text: props.systemPrompt }],
+      tools: props.tools.map(toolToCfn),
+      // 省略するとサービスが managed memory を勝手に用意する。無効を明示する
+      memory: { disabled: {} },
+      authorizerConfiguration: {
+        customJwtAuthorizer: {
+          discoveryUrl: props.discoveryUrl,
+          allowedClients: [props.allowedClientId],
+          customClaims: [
+            {
+              inboundTokenClaimName: 'cognito:groups',
+              // 配列のうち少なくとも 1 つに一致するかを見る型
+              inboundTokenClaimValueType: 'STRING_ARRAY',
+              authorizingClaimMatchValue: {
+                claimMatchValue: { matchValueString: props.slug },
+                // cognito:groups は配列。EQUALS は STRING 型専用
+                claimMatchOperator: 'CONTAINS',
               },
-            ],
-          },
+            },
+          ],
         },
-        // Environment は出さない。VPC を使わないため
-        // （NetworkConfiguration は createOnly で後から変えられない）
       },
+      // environment は渡さない。VPC を使わないため
+      // （networkConfiguration は createOnly で後から変えられない）
     });
 
-    this.harnessArn = resource.ref;
-    this.harnessId = Fn.getAtt(resource.logicalId, 'HarnessId').toString();
+    this.harnessArn = resource.attrArn;
+    this.harnessId = resource.attrHarnessId;
   }
 }
 
-function toolToCfn(tool: HarnessToolSpec): Record<string, unknown> {
+function toolToCfn(tool: HarnessToolSpec): CfnHarness.HarnessToolProperty {
   if (tool.type === 'agentcore_code_interpreter') {
     // codeInterpreterArn は省略可。省略すると組み込みが使われる
-    return { Type: tool.type, Name: tool.name, Config: { AgentCoreCodeInterpreter: {} } };
+    return { type: tool.type, name: tool.name, config: { agentCoreCodeInterpreter: {} } };
   }
   if (!tool.description || !tool.inputSchema) {
     throw new Error(
@@ -88,8 +88,8 @@ function toolToCfn(tool: HarnessToolSpec): Record<string, unknown> {
     );
   }
   return {
-    Type: tool.type,
-    Name: tool.name,
-    Config: { InlineFunction: { Description: tool.description, InputSchema: tool.inputSchema } },
+    type: tool.type,
+    name: tool.name,
+    config: { inlineFunction: { description: tool.description, inputSchema: tool.inputSchema } },
   };
 }

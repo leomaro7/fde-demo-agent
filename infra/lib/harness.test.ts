@@ -58,7 +58,7 @@ describe('Harness', () => {
           CustomClaims: [
             {
               InboundTokenClaimName: 'cognito:groups',
-              InboundTokenClaimValueType: 'STRING_LIST',
+              InboundTokenClaimValueType: 'STRING_ARRAY',
               AuthorizingClaimMatchValue: {
                 ClaimMatchValue: { MatchValueString: 'smoke' },
                 ClaimMatchOperator: 'CONTAINS',
