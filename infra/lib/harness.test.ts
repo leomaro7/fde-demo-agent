@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { Harness } from './harness.js';
+import { Harness, HarnessToolSpec } from './harness.js';
 
-function synth() {
+function synth(tools?: readonly HarnessToolSpec[]) {
   const app = new App();
   const stack = new Stack(app, 'Test', {
     env: { account: '123456789012', region: 'ap-northeast-1' },
@@ -14,7 +14,7 @@ function synth() {
     executionRoleArn: 'arn:aws:iam::123456789012:role/role-name',
     modelId: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
     systemPrompt: 'あなたは検証用のエージェントです。',
-    tools: [
+    tools: tools ?? [
       {
         type: 'inline_function',
         name: 'search',
@@ -92,5 +92,29 @@ describe('Harness', () => {
     const resources = synth().findResources('AWS::BedrockAgentCore::Harness');
     const props = Object.values(resources)[0].Properties;
     expect(props).not.toHaveProperty('Environment');
+  });
+
+  it('inline_function で description がないとき Harness 構築時にエラーが出る', () => {
+    expect(() =>
+      synth([
+        {
+          type: 'inline_function',
+          name: 'search',
+          inputSchema: { type: 'object', properties: { keyword: { type: 'string' } } },
+        },
+      ]),
+    ).toThrow(`inline_function のツール "search" には description と inputSchema が必要です。`);
+  });
+
+  it('inline_function で inputSchema がないとき Harness 構築時にエラーが出る', () => {
+    expect(() =>
+      synth([
+        {
+          type: 'inline_function',
+          name: 'search',
+          description: 'キーワードで検索する',
+        },
+      ]),
+    ).toThrow(`inline_function のツール "search" には description と inputSchema が必要です。`);
   });
 });
