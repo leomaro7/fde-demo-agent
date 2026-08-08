@@ -2,12 +2,19 @@
   "env": {
     "AWS_REGION": "ap-northeast-1"
   },
-  "enabledPlugins": {
-    "aws-core@claude-plugins-official": true,
-    "aws-agents@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true
-  },
   "permissions": {
+    "allow": [
+      "Bash(aws sts get-caller-identity:*)",
+      "Bash(aws * describe-*:*)",
+      "Bash(aws * list-*:*)",
+      "Bash(aws * get-*:*)",
+      "Bash(aws * --generate-cli-skeleton:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)"
+    ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
@@ -27,18 +34,6 @@
       "Bash(git push:*)",
       "Bash(gh repo create:*)",
       "Bash(rm -rf:*)"
-    ],
-    "allow": [
-      "Bash(aws sts get-caller-identity:*)",
-      "Bash(aws * describe-*:*)",
-      "Bash(aws * list-*:*)",
-      "Bash(aws * get-*:*)",
-      "Bash(aws * --generate-cli-skeleton:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git branch:*)",
-      "Bash(git show:*)"
     ]
   },
   "hooks": {
@@ -53,5 +48,11 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "aws-core@claude-plugins-official": true,
+    "aws-agents@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "context7@claude-plugins-official": true
   }
 }

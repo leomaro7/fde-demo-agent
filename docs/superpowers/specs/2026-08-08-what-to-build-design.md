@@ -9,7 +9,7 @@
 
 | 決めること（要件書 7.0） | 決めたこと |
 |---|---|
-| 案件リソースを CFn / CDK / AgentCore CLI のどれで作るか | **自前の CDK アプリ。`CfnResource` で直書きし、`@aws/agentcore-cdk` には依存しない** |
+| 案件リソースを CFn / CDK / AgentCore CLI のどれで作るか | **自前の CDK アプリ。`aws-cdk-lib` の `CfnHarness`（L1）を使い、`@aws/agentcore-cdk` には依存しない** |
 | ツールをどこで実行するか | **ブラウザ側**（`inline_function`）。**Code Interpreter だけ Harness 側**（`server_tool_use`） |
 | 案件の設定ファイルを自作スキーマにするか公式に寄せるか | **自作スキーマ。TypeScript で書く** |
 
@@ -96,9 +96,18 @@ Code Interpreter だけは Harness 側のままにする。前身のデータ分
 | | 事実 |
 |---|---|
 | `@aws/agentcore-cdk` の版 | **`0.1.0-alpha.46`** |
-| その中身 | Harness は **L1 が無いので生の `CfnResource`** で書いている（パッケージ内コメントに明記） |
 | `AgentCoreHarness` の要求 | `HarnessSpec`（同パッケージの zod）と **`harnessDir`（`harness.json` を置くディレクトリ、必須）** |
 | AgentCore CLI | CDK ジェネレータ。**Cognito と Amplify は管轄外** |
+| aws-cdk-lib の L1 | **`CfnHarness` が `2.263.0` に存在する**（`aws-cdk-lib/aws-bedrockagentcore`） |
+
+**2026-08-08 訂正** — この節は当初「L1 が無いので `CfnResource` で直書きする」と書いていた。
+根拠は `@aws/agentcore-cdk` のソースコメントで、**一次情報に当たっていなかった。**
+実際には `aws-cdk-lib` に `CfnHarness` がある。**`CfnHarness` を使う。**
+
+直書きをやめた理由は 2 つ。`aws-cdk-lib` は既に依存に入っているので新たな依存が増えない。
+そして手書きの PascalCase マッピングは実際に誤りを生んだ
+（`InboundTokenClaimValueType` を存在しない `STRING_LIST` と書いていた。正しくは `STRING_ARRAY`）。
+**L1 ならプロパティ名をコンパイラが検査する。**
 
 1. **alpha への依存を土台の中心部に埋め込まない**
 2. **`harnessDir` 必須という構造依存を持ち込まない。**
@@ -109,6 +118,7 @@ Code Interpreter だけは Harness 側のままにする。前身のデータ分
 
 **捨てるもの** — 40 文字検証と実行ロールの権限セットは自分で書く。
 正解は `harness-cfn-mapping.js` にあり、依存せずに読むことはできる。
+**プロパティ名と構造は `CfnHarness` が持つので、そこは自前ではない。**
 
 ---
 

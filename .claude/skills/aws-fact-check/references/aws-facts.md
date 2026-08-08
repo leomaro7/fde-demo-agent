@@ -35,7 +35,7 @@
 |---|---|
 | `AWS::BedrockAgentCore::Harness` | **存在する**。`describe-type` で `LIVE` / `FULLY_MUTABLE`。ただし `LatestPublicVersion` は `null`（公開レジストリに版が無い＝プライベート登録） |
 | `@aws/agentcore-cdk` | **Harness を扱える**。`AgentCoreHarness`（`AWS::BedrockAgentCore::Harness` を CfnResource で生成）と `AgentCoreHarnessEnvironment`（+ 実行ロール）がある。版は **`0.1.0-alpha.46`（alpha）** |
-| aws-cdk-lib の L1 | **`CfnHarness` は無い**。上記コンストラクトも生の `CfnResource` で回避している（パッケージ内コメントに明記） |
+| aws-cdk-lib の L1 | **`CfnHarness` は `aws-cdk-lib@2.263.0` に存在する**（`aws-cdk-lib/aws-bedrockagentcore`）。**`@aws/agentcore-cdk` のソースコメントは「L1 が無い」と書いているが、それは古い aws-cdk-lib を前提にした記述。信じないこと** |
 | CDK が対応する認証 | `AuthorizerConfiguration.CustomJWTAuthorizer` を `DiscoveryUrl` / `AllowedClients` / `CustomClaims` まで写像する。**Cognito グループでの案件分離は CDK だけで書ける** |
 | CFn のツール種別 | `RemoteMcp` / `AgentCoreGateway` / `AgentCoreBrowser` / `AgentCoreCodeInterpreter` / `InlineFunction`。**API と同じ 5 種** |
 | `HarnessName` | CFn では **createOnly**。物理名は `${projectName}_${name}`、**40 文字以内**（CDK が synth 前に検証する） |
@@ -120,9 +120,13 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
 
 ### `AWS::BedrockAgentCore::Harness` の CFn プロパティ（2026-08-08 確認）
 
+**このプロジェクトでは `aws-cdk-lib` の `CfnHarness`（L1）を使うので、
+下の生 JSON を手で書く必要はない。** L1 の型（camelCase）から下の PascalCase へは
+CDK が変換する。**構造と許容値の対応表として読むこと。**
+
 出典は `@aws/agentcore-cdk@0.1.0-alpha.46` の
-`dist/cdk/constructs/components/primitives/harness/harness-cfn-mapping.js`（全文を読んだ）。
-**`CfnResource` で直書きするときはこの形にする。**
+`dist/cdk/constructs/components/primitives/harness/harness-cfn-mapping.js`（全文を読んだ）と、
+`aws bedrock-agentcore-control create-harness help`。
 
 ```jsonc
 {
@@ -145,7 +149,7 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
       "AllowedClients": [ "<clientId>" ],
       "CustomClaims": [ {
         "InboundTokenClaimName": "cognito:groups",
-        "InboundTokenClaimValueType": "STRING_LIST",
+        "InboundTokenClaimValueType": "STRING_ARRAY",   // ★ STRING_LIST ではない
         "AuthorizingClaimMatchValue": {
           "ClaimMatchValue": { "MatchValueString": "<slug>" },
           "ClaimMatchOperator": "CONTAINS"
@@ -158,6 +162,8 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
 
 | 落とし穴 | 内容 |
 |---|---|
+| **`InboundTokenClaimValueType` の許容値は `STRING` / `STRING_ARRAY` の 2 つだけ** | `STRING_ARRAY` は「配列のうち少なくとも 1 つに一致」。**`STRING_LIST` は存在しない**（CLI ヘルプの `Possible values` で確認）。`cognito:groups` は配列なので `STRING_ARRAY` + `ClaimMatchOperator: CONTAINS` + `ClaimMatchValue.MatchValueString` |
+| `ClaimMatchValue` | **tagged union。** `MatchValueString` か `MatchValueStringList` の**どちらか一方だけ** |
 | **`Memory` を省略してはいけない** | **省略するとサービスが managed memory を勝手に用意する。** 「メモリ無し」を意味させるには `{ "Disabled": {} }` を明示する（公式実装のコメントに明記） |
 | `SystemPrompt` | **文字列ではなく `[{ Text }]` の配列**。`Text` は `minLength: 1`。空文字を渡すと `CREATE_FAILED` |
 | `Environment.AgentCoreRuntimeEnvironment.NetworkConfiguration` | **createOnly**。VPC を使わないなら `Environment` ごと省略する |
