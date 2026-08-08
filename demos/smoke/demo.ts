@@ -1,0 +1,47 @@
+import type { DemoConfig } from '../../infra/lib/demo-config.js';
+
+/**
+ * 土台の検証専用の案件。商談用ではない。
+ * 商談用の案件は new-demo スキルから起こすこと。
+ */
+export const demo: DemoConfig = {
+  slug: 'smoke',
+  clientName: '検証用',
+  brand: { primary: '#2563eb' },
+  harness: {
+    modelId: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    systemPrompt: [
+      'あなたは社内規程についての問い合わせに答えるアシスタントです。',
+      '',
+      '# 調べる順序',
+      '1. 必ず最初に search ツールを呼び、キーワードで規程を引く',
+      '2. 引けた内容だけを根拠にして答える',
+      '',
+      '# 根拠の示し方',
+      '回答には必ず項番（A-001 など）と条番号を添える。',
+      '',
+      '# 答えてはいけない条件',
+      '規程に書かれていない個別事情については判断しない。',
+      'その場合は「規程には定めがないため、総務部への確認が必要です」と答え、',
+      '何を確認すべきかを箇条書きで示す。推測で答えてはならない。',
+    ].join('\n'),
+    tools: [
+      {
+        type: 'inline_function',
+        name: 'search',
+        description: '社内規程をキーワードで検索する',
+        inputSchema: {
+          type: 'object',
+          properties: { keyword: { type: 'string', description: '検索するキーワード' } },
+          required: ['keyword'],
+        },
+      },
+    ],
+  },
+  examples: [
+    '出張の精算はいつまでに出せばいいですか',
+    '5 万円の備品を買いたいのですが手続きは',
+    // 3 つ目は答えられない質問。規程に無い個別事情
+    '取引先との会食で 2 万円使いましたが、上司が立て替えた場合は誰が精算しますか',
+  ],
+};
