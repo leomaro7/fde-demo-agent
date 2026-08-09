@@ -296,7 +296,7 @@ infra/
   bin/app.ts
   lib/foundation-stack.ts
   lib/demo-stack.ts
-  lib/harness.ts          CfnResource のラッパ + harnessName 検証
+  lib/harness.ts          CfnHarness を案件向けに包む + harnessName 検証
 web/
   src/agent/              eventstream / streamParser / harnessClient / toolLoop
   src/ui/

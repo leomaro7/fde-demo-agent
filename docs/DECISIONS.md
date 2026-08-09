@@ -56,7 +56,7 @@
 
 | 論点 | 決めたこと |
 |---|---|
-| 案件リソースを何で作るか | 自前 CDK + `CfnResource`。`@aws/agentcore-cdk` に依存しない |
+| 案件リソースを何で作るか | 自前 CDK + `aws-cdk-lib` の `CfnHarness`（L1）。`@aws/agentcore-cdk` に依存しない |
 | ツールをどこで実行するか | ブラウザ側（`inline_function`）。Code Interpreter だけ Harness 側 |
 | 設定ファイルの形式 | 自作スキーマ。TypeScript |
 
@@ -82,6 +82,12 @@ JWT で案件を分離するという要件からの必然だった。** 7.0 は
 **`harnessDir`（`harness.json` を置くディレクトリ）を必須**にしている。
 CLAUDE.md「構造を前提にする仕組みは、それが決まってから作る」に正面から反する。
 中身は生の `CfnResource` なので、依存せずに**プロパティ名の正解だけ読める**。
+
+**2026-08-09 訂正** — 「L1 が無い」は `@aws/agentcore-cdk` のソースコメントを信じたもので、
+**誤り**。`aws-cdk-lib@2.263.0` に `CfnHarness` がある。実装は L1 に移した。
+ただし **L1 が守るのは名前と構造だけで、列挙値は素の `string`**。
+実際 `InboundTokenClaimValueType` に存在しない `STRING_LIST` を書いており、
+それを拾ったのはコンパイラではなく `cdk synth` の CloudFormation スキーマ検証だった。
 
 **捨てたもの** — 3 つ。
 

@@ -13,7 +13,7 @@ function synth(instance = 'demo1') {
 }
 
 describe('FoundationStack', () => {
-  it('Cognito ドメインのプレフィックスは instance で、アカウント ID を含まない', () => {
+  it('Cognito ドメインのプレフィックスは instance そのもの', () => {
     const t = synth('demo1');
     t.hasResourceProperties('AWS::Cognito::UserPoolDomain', { Domain: 'demo1' });
     // 注: ブリーフ原文は `expect(JSON.stringify(t.toJSON())).not.toContain('123456789012')`
