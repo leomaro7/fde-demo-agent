@@ -19,7 +19,9 @@
 **要件書 7.0「そもそも何を自作するのか」は決着した**（2026-08-08）。
 設計は [docs/superpowers/specs/2026-08-08-what-to-build-design.md](docs/superpowers/specs/2026-08-08-what-to-build-design.md)。
 
-- 案件リソースは**自前 CDK + `CfnResource`**。`@aws/agentcore-cdk`（alpha）に依存しない
+- 案件リソースは**自前 CDK + `aws-cdk-lib` の `CfnHarness`（L1）**。
+  `@aws/agentcore-cdk`（alpha）に依存しない。**L1 が守るのは名前と構造だけで、
+  列挙値は素の `string`**。列挙値は必ず CLI ヘルプの `Possible values` で確かめる
 - ツールは**ブラウザ側**（`inline_function`）。**Code Interpreter だけ Harness 側**
 - 案件の設定は**自作スキーマ・TypeScript**
 

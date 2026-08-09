@@ -9,7 +9,7 @@
 
 | 決めること（要件書 7.0） | 決めたこと |
 |---|---|
-| 案件リソースを CFn / CDK / AgentCore CLI のどれで作るか | **自前の CDK アプリ。`CfnResource` で直書きし、`@aws/agentcore-cdk` には依存しない** |
+| 案件リソースを CFn / CDK / AgentCore CLI のどれで作るか | **自前の CDK アプリ。`aws-cdk-lib` の `CfnHarness`（L1）を使い、`@aws/agentcore-cdk` には依存しない** |
 | ツールをどこで実行するか | **ブラウザ側**（`inline_function`）。**Code Interpreter だけ Harness 側**（`server_tool_use`） |
 | 案件の設定ファイルを自作スキーマにするか公式に寄せるか | **自作スキーマ。TypeScript で書く** |
 
@@ -96,9 +96,27 @@ Code Interpreter だけは Harness 側のままにする。前身のデータ分
 | | 事実 |
 |---|---|
 | `@aws/agentcore-cdk` の版 | **`0.1.0-alpha.46`** |
-| その中身 | Harness は **L1 が無いので生の `CfnResource`** で書いている（パッケージ内コメントに明記） |
 | `AgentCoreHarness` の要求 | `HarnessSpec`（同パッケージの zod）と **`harnessDir`（`harness.json` を置くディレクトリ、必須）** |
 | AgentCore CLI | CDK ジェネレータ。**Cognito と Amplify は管轄外** |
+| aws-cdk-lib の L1 | **`CfnHarness` が `2.263.0` に存在する**（`aws-cdk-lib/aws-bedrockagentcore`） |
+
+**2026-08-08 訂正** — この節は当初「L1 が無いので `CfnResource` で直書きする」と書いていた。
+根拠は `@aws/agentcore-cdk` のソースコメントで、**一次情報に当たっていなかった。**
+実際には `aws-cdk-lib` に `CfnHarness` がある。**`CfnHarness` を使う。**
+
+直書きをやめた理由は 2 つ。`aws-cdk-lib` は既に依存に入っているので新たな依存が増えない。
+そして手書きの PascalCase マッピングは実際に誤りを生んだ
+（`InboundTokenClaimValueType` を存在しない `STRING_LIST` と書いていた。正しくは `STRING_ARRAY`）。
+
+**ただし L1 が守るのはプロパティ名と構造だけで、列挙値は守らない。**
+`inboundTokenClaimValueType` も `claimMatchOperator` も L1 の型は素の `string` で、
+`tsc` は不正な値を通す。実際に `STRING_LIST` を見つけたのはコンパイラではなく、
+**`cdk synth` 時の CloudFormation スキーマ検証の警告**だった。
+
+**列挙値は CLI ヘルプの `Possible values` で確かめる。** L1 に移しても
+この手順は省けない。「L1 だから安全」と思うのが一番危ない。
+
+`@aws/agentcore-cdk`（公式の L2）を使わない理由は、L1 の有無とは別に 3 つある。
 
 1. **alpha への依存を土台の中心部に埋め込まない**
 2. **`harnessDir` 必須という構造依存を持ち込まない。**
@@ -109,6 +127,7 @@ Code Interpreter だけは Harness 側のままにする。前身のデータ分
 
 **捨てるもの** — 40 文字検証と実行ロールの権限セットは自分で書く。
 正解は `harness-cfn-mapping.js` にあり、依存せずに読むことはできる。
+**プロパティ名と構造は `CfnHarness` が持つので、そこは自前ではない。**
 
 ---
 
@@ -202,7 +221,13 @@ Harness ── ⑤ customClaims で cognito:groups CONTAINS <slug> を検証
 **デモ用ユーザーの作成は CFn に載せない。** `AWS::Cognito::UserPoolUser` に
 一時パスワードを置く手段が無く、置けたとしてもテンプレートに平文が残る。
 **手順書側の CLI 1 コマンドにする。** これは 5.1「インフラは IaC で書く」の例外であり、
-理由を `DECISIONS.md` に残す。手段が本当に無いかは**未確認**（5. の 5）。
+理由を `DECISIONS.md` に残す。
+
+**2026-08-09 確認済み** — `AWS::Cognito::UserPoolUser` の全 8 プロパティに
+パスワード系は 1 つも無い（`clientMetadata` / `desiredDeliveryMediums` /
+`forceAliasCreation` / `messageAction` / `userAttributes` / `username` /
+`userPoolId` / `validationData`）。一方 API の `admin-create-user` には
+`TemporaryPassword` がある。**例外は妥当だった。**
 
 ## 4.4 フロント
 
@@ -225,6 +250,11 @@ Vite + React + TypeScript。画面は左に会話、右にトレース。
 
 ### 制約
 
+- **ツールの引数は `contentBlockStart` に入らない。** `contentBlockDelta.delta.toolUse.input` に
+  JSON 文字列の断片として流れる。`contentBlockIndex` ごとに連結し、`contentBlockStop` で
+  完成とみなす。**ツールループの中心はここ**（2026-08-09 実測）
+- **認可に落ちると HTTP 403 ではなく 500 が返る**（本文は `{"message":"Authorization denied"}`）。
+  ステータスコードだけでは本物のサーバーエラーと区別できないので、本文を読む（同上）
 - `toolResult.content` は **`text` のみ**。`json` は拒否されるので必ず文字列化する
 - `runtimeSessionId` は**英数字のみ 33〜100 文字**
 - Code Interpreter の `toolUse` 入力には**生成コードとデータ全体**が入る。
@@ -266,7 +296,7 @@ infra/
   bin/app.ts
   lib/foundation-stack.ts
   lib/demo-stack.ts
-  lib/harness.ts          CfnResource のラッパ + harnessName 検証
+  lib/harness.ts          CfnHarness を案件向けに包む + harnessName 検証
 web/
   src/agent/              eventstream / streamParser / harnessClient / toolLoop
   src/ui/
@@ -305,13 +335,17 @@ CLAUDE.md の方針どおり。**自動テストに時間をかけるより実�
 
 **推測で埋めていない。着手時に `aws-fact-check` の手順で潰す。**
 
+**2026-08-09 追記 — 6 件すべて実測で潰した。** 行は消さずに結果を書いた。
+何を疑って何が分かったかが次の判断材料になる。
+
 | | 何が分からないか | いつ潰すか |
 |---|---|---|
-| 1 | InvokeHarness のストリーム形状。型定義と公式実装からの推定であって、**実際に呼んでいない** | 手順 4（ローカル） |
-| 2 | CFn が Harness の `READY` を待つか（`CreateHarness` は成功を返した 2 分後に `CREATE_FAILED` になりうる） | 手順 3 |
-| 3 | `AWS::Amplify::Branch` を CFn で作れるか、および `StartDeployment` で ZIP を上げる方式が成立するか（リポジトリを接続しないため自動ビルドは走らない前提） | 手順 3 |
-| 4 | CFn 経由の案件デプロイ所要時間。`217〜256 秒` の実績と比べてどうか | 手順 3 |
-| 5 | Cognito ユーザー作成を CFn で扱えるか（一時パスワードを置く手段が無い見込み） | 手順 1 |
+| 1 | InvokeHarness のストリーム形状 | **解決（2026-08-09）** — 実測済み。**ツールの引数は `contentBlockStart` に入らず、`contentBlockDelta.delta.toolUse.input` に JSON の断片として流れる。** パーサを直した |
+| 2 | CFn が Harness の `READY` を待つか | **解決（2026-08-09）** — **待つ。** `CREATE_COMPLETE` 直後に `READY` |
+| 3 | `AWS::Amplify::Branch` を CFn で作れるか | **解決（2026-08-09）** — 作れる。`repository: null` のまま `activeJobId: null`（ビルドは走らない）。設計どおり |
+| 4 | CFn 経由の案件デプロイ所要時間 | **解決（2026-08-09）** — **31 秒**（土台は 41 秒）。前身の `217〜256 秒` を大きく下回る。方針を戻す必要なし |
+| 5 | Cognito ユーザー作成を CFn で扱えるか | **解決（2026-08-09）** — **扱えない。** `AWS::Cognito::UserPoolUser` にパスワード系プロパティが 1 つも無い（API の `admin-create-user` には `TemporaryPassword` がある）。5.1 の例外は妥当だった |
+| 6 | `demoUrl` の組み立てが実際の Amplify のドメインと一致するか | **解決（2026-08-09）** — 一致。`defaultDomain` が `<appId>.amplifyapp.com` |
 
 **1 と 4 は方針を覆しうる。** 4 が大幅に悪化するなら、案件だけ SDK スクリプトに
 戻す判断（前身の分担）が再浮上する。そのときは `DECISIONS.md` に理由ごと残す。

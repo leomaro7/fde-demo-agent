@@ -10,7 +10,7 @@
 **アーキテクチャ:** 土台スタック（Cognito User Pool + Hosted UI ドメイン + Amplify App +
 Harness 実行ロール）を 1 つ置き、案件ごとに案件スタック（Harness + User Pool Client +
 User Pool Group + Amplify Branch）を積む。Harness は `AWS::BedrockAgentCore::Harness` を
-`CfnResource` で直書きする。案件間の分離は Harness の `CustomJWTAuthorizer` が
+`aws-cdk-lib` の `CfnHarness`（L1）で作る。案件間の分離は Harness の `CustomJWTAuthorizer` が
 `cognito:groups` を検証して行う。
 
 **技術スタック:** TypeScript / aws-cdk-lib v2 / vitest / `@aws-sdk/client-bedrock-agentcore`（型のみ）
@@ -43,6 +43,8 @@ User Pool Group + Amplify Branch）を積む。Harness は `AWS::BedrockAgentCor
 - **`Environment` は省略する。** VPC を使わないため（`NetworkConfiguration` は createOnly）
 - **一時ファイルを使わない。** 設定はリポジトリに置く（`/tmp` に書かない）
 - **`aws-facts.md` に無い AWS 仕様を推測で書かない。** `--generate-cli-skeleton` で確かめる
+- **列挙値は L1 の型では守られない。** `inboundTokenClaimValueType` などは素の `string`。
+  `aws <service> <operation> help` の `Possible values` で確かめる
 - **コミットは Conventional Commits。** 本文には何をしたかより**なぜそうしたか**を書く。
   `Co-Authored-By` トレーラーは付けない（リポジトリの既存コミットに無い）
 
@@ -56,7 +58,7 @@ User Pool Group + Amplify Branch）を積む。Harness は `AWS::BedrockAgentCor
 | `infra/lib/naming.ts` | `harnessName` の組み立てと検証。**純粋関数** |
 | `infra/lib/harness-execution-role.ts` | Harness 実行ロール。信頼ポリシーと権限 |
 | `infra/lib/foundation-stack.ts` | User Pool / ドメイン / Amplify App / 実行ロール / Export |
-| `infra/lib/harness.ts` | `AWS::BedrockAgentCore::Harness` の `CfnResource` ラッパ |
+| `infra/lib/harness.ts` | `AWS::BedrockAgentCore::Harness`（`CfnHarness`）を案件向けに包む |
 | `infra/lib/demo-config.ts` | 案件設定の型。CDK とフロントの両方が import する |
 | `infra/lib/demo-stack.ts` | Harness / User Pool Client / Group / Amplify Branch |
 | `infra/bin/app.ts` | スタックの組み立て。`instance` の受け取り |
@@ -390,10 +392,12 @@ function synth(instance = 'demo1') {
 }
 
 describe('FoundationStack', () => {
-  it('Cognito ドメインのプレフィックスは instance で、アカウント ID を含まない', () => {
-    const t = synth('demo1');
-    t.hasResourceProperties('AWS::Cognito::UserPoolDomain', { Domain: 'demo1' });
-    expect(JSON.stringify(t.toJSON())).not.toContain('123456789012');
+  it('Cognito ドメインのプレフィックスは instance そのもの', () => {
+    // 厳密一致なので、アカウント ID が混ざっていればここで落ちる。
+    // テンプレート全文を走査してはいけない。実行ロールの信頼ポリシーは
+    // aws:SourceAccount にアカウント ID の実値を要求するため両立しない。
+    // 守るべきなのは「利用者に見える名前」だけ（要件書 5.3）。
+    synth('demo1').hasResourceProperties('AWS::Cognito::UserPoolDomain', { Domain: 'demo1' });
   });
 
   it('Amplify アプリ名に instance が入る', () => {
@@ -538,7 +542,7 @@ EOF
 
 ---
 
-## Task 3: Harness の `CfnResource` ラッパ
+## Task 3: Harness のコンストラクト
 
 **Files:**
 - Create: `infra/lib/harness.ts`
@@ -568,8 +572,8 @@ export interface HarnessProps {
 }
 
 export class Harness extends Construct {
-  readonly harnessArn: string;   // Ref
-  readonly harnessId: string;    // GetAtt HarnessId
+  readonly harnessArn: string;   // CfnHarness.attrArn
+  readonly harnessId: string;    // CfnHarness.attrHarnessId
   readonly harnessName: string;
 }
 ```
@@ -639,7 +643,7 @@ describe('Harness', () => {
           CustomClaims: [
             {
               InboundTokenClaimName: 'cognito:groups',
-              InboundTokenClaimValueType: 'STRING_LIST',
+              InboundTokenClaimValueType: 'STRING_ARRAY',
               AuthorizingClaimMatchValue: {
                 ClaimMatchValue: { MatchValueString: 'smoke' },
                 ClaimMatchOperator: 'CONTAINS',
@@ -687,7 +691,7 @@ Expected: FAIL。`./harness.js` が解決できない
 `infra/lib/harness.ts`:
 
 ```ts
-import { CfnResource, Fn } from 'aws-cdk-lib';
+import { CfnHarness } from 'aws-cdk-lib/aws-bedrockagentcore';
 import { Construct } from 'constructs';
 import { toHarnessName } from './naming.js';
 
@@ -712,11 +716,13 @@ export interface HarnessProps {
 }
 
 /**
- * AWS::BedrockAgentCore::Harness の CfnResource ラッパ。
+ * AWS::BedrockAgentCore::Harness を作る。
  *
- * aws-cdk-lib に L1 が無い。@aws/agentcore-cdk は L2 を持つが alpha 版で、
+ * aws-cdk-lib の L1（CfnHarness）を使う。@aws/agentcore-cdk は L2 を持つが alpha 版で、
  * harness.json を置くディレクトリを必須にするため依存しない。
- * プロパティ名は同パッケージの harness-cfn-mapping.js から写した（aws-facts.md 参照）。
+ *
+ * 許容値の根拠は aws-facts.md にある。とくに inboundTokenClaimValueType は
+ * STRING と STRING_ARRAY の 2 つだけで、STRING_LIST は存在しない。
  */
 export class Harness extends Construct {
   readonly harnessArn: string;
@@ -728,48 +734,46 @@ export class Harness extends Construct {
 
     this.harnessName = toHarnessName(props.instance, props.slug);
 
-    const resource = new CfnResource(this, 'Resource', {
-      type: 'AWS::BedrockAgentCore::Harness',
-      properties: {
-        HarnessName: this.harnessName,
-        ExecutionRoleArn: props.executionRoleArn,
-        Model: { BedrockModelConfig: { ModelId: props.modelId, ApiFormat: 'converse_stream' } },
-        // 文字列ではなく配列。Text は minLength: 1
-        SystemPrompt: [{ Text: props.systemPrompt }],
-        Tools: props.tools.map(toolToCfn),
-        // 省略するとサービスが managed memory を勝手に用意する。無効を明示する
-        Memory: { Disabled: {} },
-        AuthorizerConfiguration: {
-          CustomJWTAuthorizer: {
-            DiscoveryUrl: props.discoveryUrl,
-            AllowedClients: [props.allowedClientId],
-            CustomClaims: [
-              {
-                InboundTokenClaimName: 'cognito:groups',
-                InboundTokenClaimValueType: 'STRING_LIST',
-                AuthorizingClaimMatchValue: {
-                  ClaimMatchValue: { MatchValueString: props.slug },
-                  // cognito:groups は配列。EQUALS は STRING 型専用
-                  ClaimMatchOperator: 'CONTAINS',
-                },
+    const resource = new CfnHarness(this, 'Resource', {
+      harnessName: this.harnessName,
+      executionRoleArn: props.executionRoleArn,
+      model: { bedrockModelConfig: { modelId: props.modelId, apiFormat: 'converse_stream' } },
+      // 文字列ではなく配列。text は minLength: 1
+      systemPrompt: [{ text: props.systemPrompt }],
+      tools: props.tools.map(toolToCfn),
+      // 省略するとサービスが managed memory を勝手に用意する。無効を明示する
+      memory: { disabled: {} },
+      authorizerConfiguration: {
+        customJwtAuthorizer: {
+          discoveryUrl: props.discoveryUrl,
+          allowedClients: [props.allowedClientId],
+          customClaims: [
+            {
+              inboundTokenClaimName: 'cognito:groups',
+              // 配列のうち少なくとも 1 つに一致するかを見る型
+              inboundTokenClaimValueType: 'STRING_ARRAY',
+              authorizingClaimMatchValue: {
+                claimMatchValue: { matchValueString: props.slug },
+                // cognito:groups は配列。EQUALS は STRING 型専用
+                claimMatchOperator: 'CONTAINS',
               },
-            ],
-          },
+            },
+          ],
         },
-        // Environment は出さない。VPC を使わないため
-        // （NetworkConfiguration は createOnly で後から変えられない）
       },
+      // environment は渡さない。VPC を使わないため
+      // （networkConfiguration は createOnly で後から変えられない）
     });
 
-    this.harnessArn = resource.ref;
-    this.harnessId = Fn.getAtt(resource.logicalId, 'HarnessId').toString();
+    this.harnessArn = resource.attrArn;
+    this.harnessId = resource.attrHarnessId;
   }
 }
 
-function toolToCfn(tool: HarnessToolSpec): Record<string, unknown> {
+function toolToCfn(tool: HarnessToolSpec): CfnHarness.HarnessToolProperty {
   if (tool.type === 'agentcore_code_interpreter') {
     // codeInterpreterArn は省略可。省略すると組み込みが使われる
-    return { Type: tool.type, Name: tool.name, Config: { AgentCoreCodeInterpreter: {} } };
+    return { type: tool.type, name: tool.name, config: { agentCoreCodeInterpreter: {} } };
   }
   if (!tool.description || !tool.inputSchema) {
     throw new Error(
@@ -777,9 +781,9 @@ function toolToCfn(tool: HarnessToolSpec): Record<string, unknown> {
     );
   }
   return {
-    Type: tool.type,
-    Name: tool.name,
-    Config: { InlineFunction: { Description: tool.description, InputSchema: tool.inputSchema } },
+    type: tool.type,
+    name: tool.name,
+    config: { inlineFunction: { description: tool.description, inputSchema: tool.inputSchema } },
   };
 }
 ```
@@ -794,12 +798,18 @@ Expected: PASS。6 件すべて緑
 ```bash
 git add infra/lib/harness.ts infra/lib/harness.test.ts
 git commit -m "$(cat <<'EOF'
-feat: Harness の CfnResource ラッパを追加
+feat: Harness のコンストラクトを追加
 
-aws-cdk-lib に L1 が無い。@aws/agentcore-cdk は L2 を持つが 0.1.0-alpha.46 で、
-harness.json を置くディレクトリを必須にする。構造を前提にする仕組みを土台の
-中心部に埋めたくないので依存しない。プロパティ名は同パッケージの
-harness-cfn-mapping.js を読んで写した。
+aws-cdk-lib の L1（CfnHarness）を使う。@aws/agentcore-cdk は L2 を持つが
+0.1.0-alpha.46 で、harness.json を置くディレクトリを必須にする。構造を前提にする
+仕組みを土台の中心部に埋めたくないので依存しない。
+
+プロパティ名を手書きすると誤る。実際 inboundTokenClaimValueType を存在しない
+STRING_LIST と書いていた（正しくは STRING_ARRAY）。L1 なら名前と構造は守られる。
+
+ただし列挙値は守られない。L1 の型は素の string で、tsc は不正な値を通す。
+STRING_LIST を見つけたのは cdk synth の CloudFormation スキーマ検証の警告だった。
+列挙値は CLI ヘルプの Possible values で確かめること。
 
 Memory を省略しない。省略するとサービスが managed memory を勝手に用意する。
 「メモリ無し」を意味させるには Disabled を明示する必要がある。テストで固定した。
@@ -1196,15 +1206,19 @@ if (!instance) {
 const env = { region: 'ap-northeast-1', account: process.env.CDK_DEFAULT_ACCOUNT };
 
 const foundationStackName = `FdeDemo-${instance}-Foundation`;
-new FoundationStack(app, foundationStackName, { instance, env });
+const foundation = new FoundationStack(app, foundationStackName, { instance, env });
 
 for (const demo of [smoke]) {
-  new DemoStack(app, `FdeDemo-${instance}-${demo.slug}`, {
+  const stack = new DemoStack(app, `FdeDemo-${instance}-${demo.slug}`, {
     instance,
     foundationStackName,
     demo,
     env,
   });
+  // 案件は土台の値を Fn.importValue のリテラル文字列で引くため、CDK は依存を推論できない。
+  // 明示しないと cdk deploy --all で順序が崩れ、まだ存在しない Export を参照して落ちる。
+  // （addDependency は非推奨。addStackDependency を使う）
+  stack.addStackDependency(foundation);
 }
 ```
 

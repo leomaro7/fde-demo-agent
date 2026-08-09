@@ -35,7 +35,9 @@
 |---|---|
 | `AWS::BedrockAgentCore::Harness` | **存在する**。`describe-type` で `LIVE` / `FULLY_MUTABLE`。ただし `LatestPublicVersion` は `null`（公開レジストリに版が無い＝プライベート登録） |
 | `@aws/agentcore-cdk` | **Harness を扱える**。`AgentCoreHarness`（`AWS::BedrockAgentCore::Harness` を CfnResource で生成）と `AgentCoreHarnessEnvironment`（+ 実行ロール）がある。版は **`0.1.0-alpha.46`（alpha）** |
-| aws-cdk-lib の L1 | **`CfnHarness` は無い**。上記コンストラクトも生の `CfnResource` で回避している（パッケージ内コメントに明記） |
+| aws-cdk-lib の L1 | **`CfnHarness` は `aws-cdk-lib@2.263.0` に存在する**（`aws-cdk-lib/aws-bedrockagentcore`）。**`@aws/agentcore-cdk` のソースコメントは「L1 が無い」と書いているが、それは古い aws-cdk-lib を前提にした記述。信じないこと** |
+| **L1 が守ってくれる範囲** | **プロパティ名と構造だけ。列挙値は守られない。** `inboundTokenClaimValueType` も `claimMatchOperator` も型は素の `string` で、`tsc` は不正な値を通す。**列挙値は必ず CLI ヘルプの `Possible values` で確かめること** |
+| 列挙値の誤りを拾う最後の砦 | **`cdk synth` 時の CloudFormation スキーマ検証**（警告として出る）。`STRING_LIST` はこれで見つかった。**警告を読み飛ばさない** |
 | CDK が対応する認証 | `AuthorizerConfiguration.CustomJWTAuthorizer` を `DiscoveryUrl` / `AllowedClients` / `CustomClaims` まで写像する。**Cognito グループでの案件分離は CDK だけで書ける** |
 | CFn のツール種別 | `RemoteMcp` / `AgentCoreGateway` / `AgentCoreBrowser` / `AgentCoreCodeInterpreter` / `InlineFunction`。**API と同じ 5 種** |
 | `HarnessName` | CFn では **createOnly**。物理名は `${projectName}_${name}`、**40 文字以内**（CDK が synth 前に検証する） |
@@ -63,8 +65,45 @@ messageStop / metadata / internalServerException
 **Harness にツールを実行させても実行トレースは取れる**（要件書 4.1 の差別化点は
 `inline_function` に依存しない）。
 
-出典は `@aws/agentcore@0.26.0` 同梱の `dist/assets/harness/invoke.py.template` と
-CLI 本体のイベント処理。**実際に呼んで確かめてはいない。**
+**2026-08-09 実測。** 実際に叩いて確かめた（`scripts/probe-harness.ts`）。
+以下は推定ではなく実物。
+
+```
+ヘッダは 3 つ: :event-type / :content-type / :message-type
+
+messageStart      {"role":"assistant"}
+contentBlockStart {"contentBlockIndex":0,"start":{"toolUse":{
+                     "name":"search","toolUseId":"tooluse_...","type":"tool_use"}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":""}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":"{\"keywor"}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":"d\": \"出"}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":"張 精算\"}"}}}
+contentBlockStop  {"contentBlockIndex":0}
+messageStop       {"stopReason":"tool_use"}
+```
+
+| 実測で分かったこと | 内容 |
+|---|---|
+| **ツールの引数は `contentBlockStart` に入らない** | **`contentBlockDelta.delta.toolUse.input` に JSON 文字列の断片として流れる。** 呼び出し側が `contentBlockIndex` ごとに連結し、`contentBlockStop` で完成とみなして `JSON.parse` する。**ここを実装しないとツールループが引数を組み立てられない** |
+| `start.toolUse` の中身 | `name` / `toolUseId` / **`type`**（`tool_use` / `mcp_tool_use` / `server_tool_use`） |
+| 本文の差分 | `delta.text`。ツール引数の差分（`delta.toolUse.input`）と**同じ `contentBlockDelta` で来る**ので、中身で振り分ける |
+| `messageStop` | `inline_function` を使うと設計どおり `{"stopReason":"tool_use"}` で止まる |
+
+### 認可に落ちたときは 403 ではなく 500
+
+**`cognito:groups` に必要なグループが無いトークンで叩くと、HTTP 500 が返る。**
+
+```
+status: 500 Internal Server Error
+content-type: application/json
+body: {"message":"Authorization denied"}
+```
+
+**ステータスコードだけでは本物のサーバーエラーと区別できない。**
+画面に出し分けるなら本文を読むこと。
+
+（旧記述の出典は `@aws/agentcore@0.26.0` 同梱の
+`dist/assets/harness/invoke.py.template` と CLI 本体のイベント処理だった。）
 
 ### JS SDK は Harness を持つが、SigV4 しか話せない
 
@@ -120,9 +159,13 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
 
 ### `AWS::BedrockAgentCore::Harness` の CFn プロパティ（2026-08-08 確認）
 
+**このプロジェクトでは `aws-cdk-lib` の `CfnHarness`（L1）を使うので、
+下の生 JSON を手で書く必要はない。** L1 の型（camelCase）から下の PascalCase へは
+CDK が変換する。**構造と許容値の対応表として読むこと。**
+
 出典は `@aws/agentcore-cdk@0.1.0-alpha.46` の
-`dist/cdk/constructs/components/primitives/harness/harness-cfn-mapping.js`（全文を読んだ）。
-**`CfnResource` で直書きするときはこの形にする。**
+`dist/cdk/constructs/components/primitives/harness/harness-cfn-mapping.js`（全文を読んだ）と、
+`aws bedrock-agentcore-control create-harness help`。
 
 ```jsonc
 {
@@ -145,7 +188,7 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
       "AllowedClients": [ "<clientId>" ],
       "CustomClaims": [ {
         "InboundTokenClaimName": "cognito:groups",
-        "InboundTokenClaimValueType": "STRING_LIST",
+        "InboundTokenClaimValueType": "STRING_ARRAY",   // ★ STRING_LIST ではない
         "AuthorizingClaimMatchValue": {
           "ClaimMatchValue": { "MatchValueString": "<slug>" },
           "ClaimMatchOperator": "CONTAINS"
@@ -158,6 +201,8 @@ Code Interpreter を使う」構成は、すでにこの混在形だった。
 
 | 落とし穴 | 内容 |
 |---|---|
+| **`InboundTokenClaimValueType` の許容値は `STRING` / `STRING_ARRAY` の 2 つだけ** | `STRING_ARRAY` は「配列のうち少なくとも 1 つに一致」。**`STRING_LIST` は存在しない**（CLI ヘルプの `Possible values` で確認）。`cognito:groups` は配列なので `STRING_ARRAY` + `ClaimMatchOperator: CONTAINS` + `ClaimMatchValue.MatchValueString` |
+| `ClaimMatchValue` | **tagged union。** `MatchValueString` か `MatchValueStringList` の**どちらか一方だけ** |
 | **`Memory` を省略してはいけない** | **省略するとサービスが managed memory を勝手に用意する。** 「メモリ無し」を意味させるには `{ "Disabled": {} }` を明示する（公式実装のコメントに明記） |
 | `SystemPrompt` | **文字列ではなく `[{ Text }]` の配列**。`Text` は `minLength: 1`。空文字を渡すと `CREATE_FAILED` |
 | `Environment.AgentCoreRuntimeEnvironment.NetworkConfiguration` | **createOnly**。VPC を使わないなら `Environment` ごと省略する |

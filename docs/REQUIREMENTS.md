@@ -302,7 +302,7 @@ Transaction Search のような**アカウント・リージョン単位のグ�
 >
 > | 論点 | 決めたこと |
 > |---|---|
-> | 案件リソースを何で作るか | **自前 CDK + `CfnResource`。`@aws/agentcore-cdk`（alpha）に依存しない** |
+> | 案件リソースを何で作るか | **自前 CDK + `aws-cdk-lib` の `CfnHarness`（L1）。`@aws/agentcore-cdk`（alpha）に依存しない** |
 > | ツールをどこで実行するか | **ブラウザ側**（`inline_function`）。**Code Interpreter だけ Harness 側** |
 > | 設定ファイルの形式 | **自作スキーマ。TypeScript** |
 >
