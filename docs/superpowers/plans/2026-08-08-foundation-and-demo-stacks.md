@@ -1206,15 +1206,19 @@ if (!instance) {
 const env = { region: 'ap-northeast-1', account: process.env.CDK_DEFAULT_ACCOUNT };
 
 const foundationStackName = `FdeDemo-${instance}-Foundation`;
-new FoundationStack(app, foundationStackName, { instance, env });
+const foundation = new FoundationStack(app, foundationStackName, { instance, env });
 
 for (const demo of [smoke]) {
-  new DemoStack(app, `FdeDemo-${instance}-${demo.slug}`, {
+  const stack = new DemoStack(app, `FdeDemo-${instance}-${demo.slug}`, {
     instance,
     foundationStackName,
     demo,
     env,
   });
+  // 案件は土台の値を Fn.importValue のリテラル文字列で引くため、CDK は依存を推論できない。
+  // 明示しないと cdk deploy --all で順序が崩れ、まだ存在しない Export を参照して落ちる。
+  // （addDependency は非推奨。addStackDependency を使う）
+  stack.addStackDependency(foundation);
 }
 ```
 
