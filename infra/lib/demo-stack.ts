@@ -47,6 +47,12 @@ export class DemoStack extends Stack {
       allowedOAuthScopes: ['openid', 'email'],
       allowedOAuthFlowsUserPoolClient: true,
       supportedIdentityProviders: ['COGNITO'],
+      // クライアントが使うのは Hosted UI の認可コードフロー（allowedOAuthFlows）だけ。
+      // ここは開発者が admin-initiate-auth でトークンを取るための穴で、
+      // IAM 認証が要るためインターネット越しには使えない。
+      // USER_PASSWORD_AUTH は開けない（誰でもパスワードで直接叩けてしまう）。
+      // 明示することで既定の USER_SRP_AUTH / CUSTOM_AUTH も落ちる。
+      explicitAuthFlows: ['ALLOW_ADMIN_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'],
       // `callbackUrLs` / `logoutUrLs` の綴りは誤字ではない。CFn の CallbackURLs を
       // jsii が変換した結果であり、これが aws-cdk-lib の正しいプロパティ名。直さないこと
       callbackUrLs: [`${demoUrl}/`, 'http://localhost:5173/'],

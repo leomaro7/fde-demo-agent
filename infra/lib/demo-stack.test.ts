@@ -27,6 +27,12 @@ describe('DemoStack', () => {
     });
   });
 
+  it('パスワード認証は管理 API 経由だけに開ける（インターネット越しには開けない）', () => {
+    synth().hasResourceProperties('AWS::Cognito::UserPoolClient', {
+      ExplicitAuthFlows: ['ALLOW_ADMIN_USER_PASSWORD_AUTH', 'ALLOW_REFRESH_TOKEN_AUTH'],
+    });
+  });
+
   it('Amplify ブランチを案件スタックが持つ', () => {
     synth().hasResourceProperties('AWS::Amplify::Branch', { BranchName: 'smoke' });
   });

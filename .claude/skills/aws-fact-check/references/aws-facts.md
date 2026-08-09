@@ -65,8 +65,45 @@ messageStop / metadata / internalServerException
 **Harness にツールを実行させても実行トレースは取れる**（要件書 4.1 の差別化点は
 `inline_function` に依存しない）。
 
-出典は `@aws/agentcore@0.26.0` 同梱の `dist/assets/harness/invoke.py.template` と
-CLI 本体のイベント処理。**実際に呼んで確かめてはいない。**
+**2026-08-09 実測。** 実際に叩いて確かめた（`scripts/probe-harness.ts`）。
+以下は推定ではなく実物。
+
+```
+ヘッダは 3 つ: :event-type / :content-type / :message-type
+
+messageStart      {"role":"assistant"}
+contentBlockStart {"contentBlockIndex":0,"start":{"toolUse":{
+                     "name":"search","toolUseId":"tooluse_...","type":"tool_use"}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":""}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":"{\"keywor"}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":"d\": \"出"}}}
+contentBlockDelta {"contentBlockIndex":0,"delta":{"toolUse":{"input":"張 精算\"}"}}}
+contentBlockStop  {"contentBlockIndex":0}
+messageStop       {"stopReason":"tool_use"}
+```
+
+| 実測で分かったこと | 内容 |
+|---|---|
+| **ツールの引数は `contentBlockStart` に入らない** | **`contentBlockDelta.delta.toolUse.input` に JSON 文字列の断片として流れる。** 呼び出し側が `contentBlockIndex` ごとに連結し、`contentBlockStop` で完成とみなして `JSON.parse` する。**ここを実装しないとツールループが引数を組み立てられない** |
+| `start.toolUse` の中身 | `name` / `toolUseId` / **`type`**（`tool_use` / `mcp_tool_use` / `server_tool_use`） |
+| 本文の差分 | `delta.text`。ツール引数の差分（`delta.toolUse.input`）と**同じ `contentBlockDelta` で来る**ので、中身で振り分ける |
+| `messageStop` | `inline_function` を使うと設計どおり `{"stopReason":"tool_use"}` で止まる |
+
+### 認可に落ちたときは 403 ではなく 500
+
+**`cognito:groups` に必要なグループが無いトークンで叩くと、HTTP 500 が返る。**
+
+```
+status: 500 Internal Server Error
+content-type: application/json
+body: {"message":"Authorization denied"}
+```
+
+**ステータスコードだけでは本物のサーバーエラーと区別できない。**
+画面に出し分けるなら本文を読むこと。
+
+（旧記述の出典は `@aws/agentcore@0.26.0` 同梱の
+`dist/assets/harness/invoke.py.template` と CLI 本体のイベント処理だった。）
 
 ### JS SDK は Harness を持つが、SigV4 しか話せない
 
