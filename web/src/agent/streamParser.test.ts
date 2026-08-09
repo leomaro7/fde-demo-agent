@@ -16,9 +16,70 @@ describe('parseFrame', () => {
 
   it('toolUse の開始を返す', () => {
     const e = parseFrame(
-      frame('contentBlockStart', { start: { toolUse: { toolUseId: 'tu-1', name: 'search' } } }),
+      frame('contentBlockStart', {
+        contentBlockIndex: 0,
+        start: { toolUse: { toolUseId: 'tu-1', name: 'search', type: 'tool_use' } },
+      }),
     );
-    expect(e).toEqual({ kind: 'toolUse', toolUseId: 'tu-1', name: 'search' });
+    expect(e).toEqual({
+      kind: 'toolUse',
+      toolUseId: 'tu-1',
+      name: 'search',
+      type: 'tool_use',
+      contentBlockIndex: 0,
+    });
+  });
+
+  it('実測ペイロード: contentBlockStart の toolUse から type と contentBlockIndex を取れる', () => {
+    // 実測ヘッダは :event-type / :content-type / :message-type の 3 つだが、
+    // parseFrame は :event-type しか見ないため、テストでは省略している
+    const e = parseFrame(
+      frame('contentBlockStart', {
+        contentBlockIndex: 0,
+        start: {
+          toolUse: {
+            name: 'search',
+            toolUseId: 'tooluse_uhosq6zEZBv2HPysAs44MK',
+            type: 'tool_use',
+          },
+        },
+      }),
+    );
+    expect(e).toEqual({
+      kind: 'toolUse',
+      toolUseId: 'tooluse_uhosq6zEZBv2HPysAs44MK',
+      name: 'search',
+      type: 'tool_use',
+      contentBlockIndex: 0,
+    });
+  });
+
+  it('実測ペイロード: toolUse.input の断片を空文字列も含めて取り出せる', () => {
+    const fragments = ['', '{"keywor', 'd": "出張 精算"}'];
+    const events = fragments.map((input) =>
+      parseFrame(frame('contentBlockDelta', { contentBlockIndex: 0, delta: { toolUse: { input } } })),
+    );
+    expect(events).toEqual([
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '' },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"keywor' },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: 'd": "出張 精算"}' },
+    ]);
+  });
+
+  it('delta.text と delta.toolUse.input が同じ contentBlockDelta でも正しく振り分けられる', () => {
+    const textEvent = parseFrame(
+      frame('contentBlockDelta', { contentBlockIndex: 0, delta: { text: 'こんにちは' } }),
+    );
+    const inputEvent = parseFrame(
+      frame('contentBlockDelta', { contentBlockIndex: 1, delta: { toolUse: { input: '{"a":1}' } } }),
+    );
+    expect(textEvent).toEqual({ kind: 'text', text: 'こんにちは' });
+    expect(inputEvent).toEqual({ kind: 'toolUseInput', contentBlockIndex: 1, input: '{"a":1}' });
+  });
+
+  it('実測ペイロード: contentBlockStop で contentBlockIndex を拾える', () => {
+    const e = parseFrame(frame('contentBlockStop', { contentBlockIndex: 0 }));
+    expect(e).toEqual({ kind: 'contentBlockStop', contentBlockIndex: 0 });
   });
 
   it('toolResult を返す', () => {

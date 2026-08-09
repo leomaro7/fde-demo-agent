@@ -2,8 +2,10 @@ import type { Frame } from './eventstream.js';
 
 export type StreamEvent =
   | { kind: 'text'; text: string }
-  | { kind: 'toolUse'; toolUseId: string; name: string }
+  | { kind: 'toolUse'; toolUseId: string; name: string; type: string; contentBlockIndex: number }
+  | { kind: 'toolUseInput'; contentBlockIndex: number; input: string }
   | { kind: 'toolResult'; toolUseId: string; status: string }
+  | { kind: 'contentBlockStop'; contentBlockIndex: number }
   | { kind: 'stop'; reason: string }
   | { kind: 'error'; message: string };
 
@@ -23,13 +25,28 @@ export function parseFrame(frame: Frame): StreamEvent | null {
 
   switch (frame.headers[':event-type']) {
     case 'contentBlockDelta': {
+      // text と toolUse.input は同じ contentBlockDelta に混在する（実測）。中身で振り分ける。
       const text = body?.delta?.text;
-      return typeof text === 'string' ? { kind: 'text', text } : null;
+      if (typeof text === 'string') {
+        return { kind: 'text', text };
+      }
+      const input = body?.delta?.toolUse?.input;
+      if (typeof input === 'string') {
+        // 空文字列の断片（1 個目）も含めて返す。連結側で捨てるかどうかを決めさせる
+        return { kind: 'toolUseInput', contentBlockIndex: body?.contentBlockIndex, input };
+      }
+      return null;
     }
     case 'contentBlockStart': {
       const start = body?.start;
       if (start?.toolUse) {
-        return { kind: 'toolUse', toolUseId: start.toolUse.toolUseId, name: start.toolUse.name };
+        return {
+          kind: 'toolUse',
+          toolUseId: start.toolUse.toolUseId,
+          name: start.toolUse.name,
+          type: start.toolUse.type,
+          contentBlockIndex: body?.contentBlockIndex,
+        };
       }
       if (start?.toolResult) {
         return {
@@ -40,6 +57,8 @@ export function parseFrame(frame: Frame): StreamEvent | null {
       }
       return null;
     }
+    case 'contentBlockStop':
+      return { kind: 'contentBlockStop', contentBlockIndex: body?.contentBlockIndex };
     case 'messageStop':
       return { kind: 'stop', reason: String(body?.stopReason ?? 'end_turn') };
     default:
