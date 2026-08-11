@@ -1,74 +1,104 @@
 import { useEffect, useState } from 'react';
-import { readConfig } from '../config.js';
+import { readConfig, type WebConfig } from '../config.js';
 import { createPkcePair, randomUrlSafe } from '../auth/pkce.js';
 import { buildAuthorizeUrl, exchangeCodeForToken } from '../auth/cognito.js';
+import { decideLoginAction } from '../auth/loginFlow.js';
 import { invokeHarness, newSessionId, HarnessError, type HarnessMessage } from '../agent/harnessClient.js';
 import { runTurn } from '../agent/toolLoop.js';
 import { Conversation } from './Conversation.js';
 import { demo } from '../../../demos/smoke/demo.js';
 import { tools } from '../../../demos/smoke/tools.js';
 
-const config = readConfig(import.meta.env as unknown as Record<string, string | undefined>);
+// モジュールのトップレベルで投げると、React が描画を始める前に例外が飛び、
+// createRoot(...).render() にも到達せず画面が真っ白になる。
+// ここでは投げず、結果を持ち回って App の中で画面に出す。
+let config: WebConfig | null = null;
+let configError: string | null = null;
+try {
+  config = readConfig(import.meta.env as unknown as Record<string, string | undefined>);
+} catch (e) {
+  configError = (e as Error).message;
+}
 const redirectUri = `${window.location.origin}/`;
+
+function clearLoginState() {
+  sessionStorage.removeItem('pkce_verifier');
+  sessionStorage.removeItem('oauth_state');
+  window.history.replaceState({}, '', redirectUri);
+}
 
 export function App() {
   const [token, setToken] = useState<string | null>(null);
   const [messages, setMessages] = useState<HarnessMessage[]>([]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(configError);
   const [sessionId] = useState(newSessionId);
 
   useEffect(() => {
-    void (async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      const verifier = sessionStorage.getItem('pkce_verifier');
-      const expectedState = sessionStorage.getItem('oauth_state');
+    if (!config) return; // 設定不足はすでに configError として画面に出ている
+    const cfg = config;
 
-      if (code && verifier && expectedState) {
-        // state を突き合わせないと、他所から仕込まれた認可コードを掴まされる（CSRF）。
-        // 生成するだけで検証しないなら、そもそも付ける意味がない
-        if (params.get('state') !== expectedState) {
-          sessionStorage.removeItem('pkce_verifier');
-          sessionStorage.removeItem('oauth_state');
-          setError('ログインの検証に失敗しました。画面を読み込み直してください。');
-          return;
-        }
+    void (async () => {
+      const action = decideLoginAction({
+        search: window.location.search,
+        verifier: sessionStorage.getItem('pkce_verifier'),
+        expectedState: sessionStorage.getItem('oauth_state'),
+      });
+
+      if (action.kind === 'fail') {
+        // 途中状態を残すと、再読み込み時に使用済みの code で交換を再試行して
+        // また失敗する。次にやり直せるよう必ず後始末してから出す
+        clearLoginState();
+        setError(action.message);
+        return;
+      }
+
+      if (action.kind === 'exchange') {
         try {
           setToken(
             await exchangeCodeForToken({
-              domain: config.cognitoDomain,
-              clientId: config.clientId,
+              domain: cfg.cognitoDomain,
+              clientId: cfg.clientId,
               redirectUri,
-              code,
-              verifier,
+              code: action.code,
+              verifier: action.verifier,
             }),
           );
-          sessionStorage.removeItem('pkce_verifier');
-          sessionStorage.removeItem('oauth_state');
-          window.history.replaceState({}, '', redirectUri);
+          clearLoginState();
         } catch (e) {
+          // 失敗しても state 不一致の分岐と同じく必ず後始末する
+          clearLoginState();
           setError((e as Error).message);
         }
         return;
       }
 
-      const pair = await createPkcePair();
-      const state = randomUrlSafe(16);
-      sessionStorage.setItem('pkce_verifier', pair.verifier);
-      sessionStorage.setItem('oauth_state', state);
-      window.location.href = buildAuthorizeUrl({
-        domain: config.cognitoDomain,
-        clientId: config.clientId,
-        redirectUri,
-        challenge: pair.challenge,
-        state,
-      });
+      // action.kind === 'redirect'
+      try {
+        const pair = await createPkcePair();
+        const state = randomUrlSafe(16);
+        sessionStorage.setItem('pkce_verifier', pair.verifier);
+        sessionStorage.setItem('oauth_state', state);
+        window.location.href = buildAuthorizeUrl({
+          domain: cfg.cognitoDomain,
+          clientId: cfg.clientId,
+          redirectUri,
+          challenge: pair.challenge,
+          state,
+        });
+      } catch (e) {
+        // crypto.subtle や sessionStorage が使えない環境（Safari のプライベート
+        // ウィンドウ等）で未捕捉の rejection になると、画面は「ログインしています…」
+        // のまま無反応になる
+        setError(`ログインを開始できませんでした: ${(e as Error).message}`);
+      }
     })();
   }, []);
 
   const send = async (text: string) => {
-    if (!token) return;
+    // token は設定が揃っているときのログイン成功後にしか立たないため、ここでは常に非 null
+    if (!token || !config) return;
+    const cfg = config;
     setError(null);
     setBusy(true);
     const next: HarnessMessage[] = [...messages, { role: 'user', content: [{ text }] }];
@@ -78,11 +108,11 @@ export function App() {
         await runTurn({
           invoke: (ms) =>
             invokeHarness({
-              harnessArn: config.harnessArn,
+              harnessArn: cfg.harnessArn,
               accessToken: token,
               runtimeSessionId: sessionId,
               messages: ms,
-              region: config.region,
+              region: cfg.region,
             }),
           tools,
           messages: next,
