@@ -696,12 +696,14 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
       return [...messages, { role: 'assistant', content: [{ text: text + stopNote(stopReason) }] }];
     }
 
-    const toolUseBlocks: HarnessContentBlock[] = [];
+    // モデルはツールを呼ぶ前に前置きを喋ることがある（「規程を確認します」など）。
+    // 捨てると画面に出ないうえ、モデルが自分の発言を履歴から見失う
+    const assistantBlocks: HarnessContentBlock[] = text ? [{ text }] : [];
     const resultBlocks: HarnessContentBlock[] = [];
 
     for (const p of completed) {
       const { input, parseError } = parseInput(p.raw);
-      toolUseBlocks.push({ toolUse: { toolUseId: p.toolUseId, name: p.name, input } });
+      assistantBlocks.push({ toolUse: { toolUseId: p.toolUseId, name: p.name, input } });
       // ツールは 1 回だけ呼ぶ。結果と成否を別々に取りに行くと二重に実行される
       const outcome = await runTool(o.tools, p.name, input, parseError);
       resultBlocks.push({
@@ -716,7 +718,7 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
 
     messages = [
       ...messages,
-      { role: 'assistant', content: toolUseBlocks },
+      { role: 'assistant', content: assistantBlocks },
       { role: 'user', content: resultBlocks },
     ];
   }
