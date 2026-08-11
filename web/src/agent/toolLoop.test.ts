@@ -1,0 +1,185 @@
+import { describe, it, expect, vi } from 'vitest';
+import { runTurn } from './toolLoop.js';
+import type { StreamEvent } from './streamParser.js';
+import type { HarnessMessage } from './harnessClient.js';
+
+/** 用意したイベント列を順に返す invoke を作る。呼ばれるたびに次の配列を流す。 */
+function fakeInvoke(rounds: StreamEvent[][]) {
+  const seen: HarnessMessage[][] = [];
+  let i = 0;
+  const invoke = async function* (messages: HarnessMessage[]) {
+    seen.push(structuredClone(messages));
+    for (const e of rounds[i] ?? []) yield e;
+    i += 1;
+  };
+  return { invoke, seen };
+}
+
+const askSearch: StreamEvent[] = [
+  { kind: 'toolUse', toolUseId: 'tu-1', name: 'search', type: 'tool_use', contentBlockIndex: 0 },
+  { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"keyw' },
+  { kind: 'toolUseInput', contentBlockIndex: 0, input: 'ord": "出張"}' },
+  { kind: 'contentBlockStop', contentBlockIndex: 0 },
+  { kind: 'stop', reason: 'tool_use' },
+];
+
+const answer: StreamEvent[] = [
+  { kind: 'text', text: '帰着後 5 営業日以内です。' },
+  { kind: 'stop', reason: 'end_turn' },
+];
+
+describe('runTurn', () => {
+  it('断片を連結してツールの引数を組み立て、ツールを呼ぶ', async () => {
+    const search = vi.fn(() => '[A-001] 帰着後 5 営業日以内');
+    const { invoke } = fakeInvoke([askSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: { search },
+      messages: [{ role: 'user', content: [{ text: '出張の精算は' }] }],
+    });
+    expect(search).toHaveBeenCalledWith({ keyword: '出張' });
+  });
+
+  it('ツール結果を text で返す（json は拒否されるため）', async () => {
+    const { invoke, seen } = fakeInvoke([askSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: { search: () => '[A-001] 帰着後 5 営業日以内' },
+      messages: [{ role: 'user', content: [{ text: '出張の精算は' }] }],
+    });
+    const secondRequest = seen[1];
+    expect(secondRequest.at(-1)).toEqual({
+      role: 'user',
+      content: [
+        {
+          toolResult: {
+            toolUseId: 'tu-1',
+            content: [{ text: '[A-001] 帰着後 5 営業日以内' }],
+            status: 'success',
+          },
+        },
+      ],
+    });
+  });
+
+  it('assistant の toolUse を履歴に残してから結果を返す', async () => {
+    const { invoke, seen } = fakeInvoke([askSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: { search: () => 'ok' },
+      messages: [{ role: 'user', content: [{ text: '出張の精算は' }] }],
+    });
+    expect(seen[1][1]).toEqual({
+      role: 'assistant',
+      content: [{ toolUse: { toolUseId: 'tu-1', name: 'search', input: { keyword: '出張' } } }],
+    });
+  });
+
+  it('最終的な本文を assistant メッセージとして返す', async () => {
+    const { invoke } = fakeInvoke([askSearch, answer]);
+    const messages = await runTurn({
+      invoke,
+      tools: { search: () => 'ok' },
+      messages: [{ role: 'user', content: [{ text: '出張の精算は' }] }],
+    });
+    expect(messages.at(-1)).toEqual({
+      role: 'assistant',
+      content: [{ text: '帰着後 5 営業日以内です。' }],
+    });
+  });
+
+  it('知らないツールを呼ばれたら error の toolResult を返して会話を続ける', async () => {
+    const unknown: StreamEvent[] = [
+      { kind: 'toolUse', toolUseId: 'tu-9', name: 'nosuch', type: 'tool_use', contentBlockIndex: 0 },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 0 },
+      { kind: 'stop', reason: 'tool_use' },
+    ];
+    const { invoke, seen } = fakeInvoke([unknown, answer]);
+    await runTurn({ invoke, tools: {}, messages: [{ role: 'user', content: [{ text: 'x' }] }] });
+    const result = seen[1].at(-1)!.content[0] as { toolResult: { status: string; content: { text: string }[] } };
+    expect(result.toolResult.status).toBe('error');
+    expect(result.toolResult.content[0].text).toContain('nosuch');
+  });
+
+  it('ツールが投げても会話を止めず、error として返す', async () => {
+    const { invoke, seen } = fakeInvoke([askSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: {
+        search: () => {
+          throw new Error('seed が壊れている');
+        },
+      },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+    const result = seen[1].at(-1)!.content[0] as { toolResult: { status: string; content: { text: string }[] } };
+    expect(result.toolResult.status).toBe('error');
+    expect(result.toolResult.content[0].text).toContain('seed が壊れている');
+  });
+
+  it('ツール往復が上限を超えたら止める（無限ループを防ぐ）', async () => {
+    const { invoke } = fakeInvoke([askSearch, askSearch, askSearch]);
+    const messages = await runTurn({
+      invoke,
+      tools: { search: () => 'ok' },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+      maxRounds: 2,
+    });
+    const last = messages.at(-1)!;
+    expect(JSON.stringify(last)).toContain('上限');
+  });
+
+  it('異常な stopReason は理由を本文に添える（無言で終わらせない）', async () => {
+    const filtered: StreamEvent[] = [
+      { kind: 'text', text: '途中まで' },
+      { kind: 'stop', reason: 'content_filtered' },
+    ];
+    const { invoke } = fakeInvoke([filtered]);
+    const messages = await runTurn({
+      invoke,
+      tools: {},
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+    const text = (messages.at(-1)!.content[0] as { text: string }).text;
+    expect(text).toContain('途中まで');
+    expect(text).toContain('フィルタ');
+  });
+
+  it('正常終了には余計な注記を足さない', async () => {
+    const { invoke } = fakeInvoke([answer]);
+    const messages = await runTurn({
+      invoke,
+      tools: {},
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+    expect(messages.at(-1)).toEqual({
+      role: 'assistant',
+      content: [{ text: '帰着後 5 営業日以内です。' }],
+    });
+  });
+
+  it('イベントを onEvent にそのまま流す（画面のトレース用）', async () => {
+    const seenEvents: StreamEvent[] = [];
+    const { invoke } = fakeInvoke([askSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: { search: () => 'ok' },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+      onEvent: (e) => seenEvents.push(e),
+    });
+    expect(seenEvents).toContainEqual({ kind: 'text', text: '帰着後 5 営業日以内です。' });
+    expect(seenEvents.some((e) => e.kind === 'toolUse')).toBe(true);
+  });
+
+  it('ツールは 1 回だけ呼ぶ（結果と成否を二度取りしない）', async () => {
+    const search = vi.fn(() => 'ok');
+    const { invoke } = fakeInvoke([askSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: { search },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+    expect(search).toHaveBeenCalledTimes(1);
+  });
+});
