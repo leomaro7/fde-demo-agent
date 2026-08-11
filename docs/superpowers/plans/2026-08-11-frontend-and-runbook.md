@@ -1544,8 +1544,17 @@ export function App() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       const verifier = sessionStorage.getItem('pkce_verifier');
+      const expectedState = sessionStorage.getItem('oauth_state');
 
-      if (code && verifier) {
+      if (code && verifier && expectedState) {
+        // state を突き合わせないと、他所から仕込まれた認可コードを掴まされる（CSRF）。
+        // 生成するだけで検証しないなら、そもそも付ける意味がない
+        if (params.get('state') !== expectedState) {
+          sessionStorage.removeItem('pkce_verifier');
+          sessionStorage.removeItem('oauth_state');
+          setError('ログインの検証に失敗しました。画面を読み込み直してください。');
+          return;
+        }
         try {
           setToken(
             await exchangeCodeForToken({
@@ -1557,6 +1566,7 @@ export function App() {
             }),
           );
           sessionStorage.removeItem('pkce_verifier');
+          sessionStorage.removeItem('oauth_state');
           window.history.replaceState({}, '', redirectUri);
         } catch (e) {
           setError((e as Error).message);
@@ -1565,13 +1575,15 @@ export function App() {
       }
 
       const pair = await createPkcePair();
+      const state = randomUrlSafe(16);
       sessionStorage.setItem('pkce_verifier', pair.verifier);
+      sessionStorage.setItem('oauth_state', state);
       window.location.href = buildAuthorizeUrl({
         domain: config.cognitoDomain,
         clientId: config.clientId,
         redirectUri,
         challenge: pair.challenge,
-        state: randomUrlSafe(16),
+        state,
       });
     })();
   }, []);
