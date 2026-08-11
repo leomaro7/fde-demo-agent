@@ -8,7 +8,8 @@
     "synth": "cdk synth",
     "deploy": "cdk deploy",
     "dev": "vite --config web/vite.config.ts",
-    "build:web": "vite build --config web/vite.config.ts"
+    "build:web": "vite build --config web/vite.config.ts",
+    "deploy:web": "tsx scripts/deploy-web.ts"
   },
   "devDependencies": {
     "@types/node": "^22",
