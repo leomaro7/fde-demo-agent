@@ -31,7 +31,7 @@ export class FoundationStack extends Stack {
     // ドメインプレフィックスはリージョン内で全 AWS アカウント共通の名前空間。
     // 一意性の責任は instance を決める人にある。アカウント ID は入れない
     // （ログイン URL はクライアントのブラウザに表示される）。
-    this.userPool.addDomain('Domain', {
+    const domain = this.userPool.addDomain('Domain', {
       cognitoDomain: { domainPrefix: instance },
     });
 
@@ -56,6 +56,10 @@ export class FoundationStack extends Stack {
     new CfnOutput(this, 'ExecutionRoleArn', {
       value: executionRole.roleArn,
       exportName: `${this.stackName}-ExecutionRoleArn`,
+    });
+    // フロントのログイン先。案件スタックは使わないので Export しない
+    new CfnOutput(this, 'HostedUiDomain', {
+      value: `https://${domain.domainName}.auth.${this.region}.amazoncognito.com`,
     });
   }
 }
