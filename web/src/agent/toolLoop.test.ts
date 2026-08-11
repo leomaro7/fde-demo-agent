@@ -182,4 +182,65 @@ describe('runTurn', () => {
     });
     expect(search).toHaveBeenCalledTimes(1);
   });
+
+  it('ツールを呼ぶ前の前置きを assistant メッセージの text ブロックとして残す', async () => {
+    const preambleThenSearch: StreamEvent[] = [
+      { kind: 'text', text: '規程を確認します。' },
+      { kind: 'toolUse', toolUseId: 'tu-1', name: 'search', type: 'tool_use', contentBlockIndex: 0 },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"keyword": "出張"}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 0 },
+      { kind: 'stop', reason: 'tool_use' },
+    ];
+    const { invoke, seen } = fakeInvoke([preambleThenSearch, answer]);
+    await runTurn({
+      invoke,
+      tools: { search: () => 'ok' },
+      messages: [{ role: 'user', content: [{ text: '出張の精算は' }] }],
+    });
+    expect(seen[1][1]).toEqual({
+      role: 'assistant',
+      content: [
+        { text: '規程を確認します。' },
+        { toolUse: { toolUseId: 'tu-1', name: 'search', input: { keyword: '出張' } } },
+      ],
+    });
+  });
+
+  it('複数のツールが同時に呼ばれても contentBlockIndex ごとに断片が混ざらない', async () => {
+    const twoToolsInterleaved: StreamEvent[] = [
+      { kind: 'toolUse', toolUseId: 'tu-a', name: 'toolA', type: 'tool_use', contentBlockIndex: 0 },
+      { kind: 'toolUse', toolUseId: 'tu-b', name: 'toolB', type: 'tool_use', contentBlockIndex: 1 },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"a"' },
+      { kind: 'toolUseInput', contentBlockIndex: 1, input: '{"b"' },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: ': 1}' },
+      { kind: 'toolUseInput', contentBlockIndex: 1, input: ': 2}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 0 },
+      { kind: 'contentBlockStop', contentBlockIndex: 1 },
+      { kind: 'stop', reason: 'tool_use' },
+    ];
+    const toolA = vi.fn(() => 'A の結果');
+    const toolB = vi.fn(() => 'B の結果');
+    const { invoke, seen } = fakeInvoke([twoToolsInterleaved, answer]);
+    await runTurn({
+      invoke,
+      tools: { toolA, toolB },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+
+    expect(toolA).toHaveBeenCalledWith({ a: 1 });
+    expect(toolB).toHaveBeenCalledWith({ b: 2 });
+
+    const resultMessage = seen[1].at(-1)!;
+    expect(resultMessage).toEqual({
+      role: 'user',
+      content: [
+        {
+          toolResult: { toolUseId: 'tu-a', content: [{ text: 'A の結果' }], status: 'success' },
+        },
+        {
+          toolResult: { toolUseId: 'tu-b', content: [{ text: 'B の結果' }], status: 'success' },
+        },
+      ],
+    });
+  });
 });
