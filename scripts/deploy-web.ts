@@ -38,6 +38,7 @@ export async function deployWeb(o: { instance: string; slug: string }): Promise<
   };
 
   // ビルド設定はリポジトリの web/.env.local に書く。ビルド成果物だけを一時領域に置く
+  console.log(`Instance '${o.instance}' の Slug '${o.slug}' で web/.env.local を上書きします`);
   writeFileSync('web/.env.local', toEnvLines(outputs) + '\n');
   execFileSync('npm', ['run', 'build:web'], { stdio: 'inherit' });
 
@@ -60,5 +61,8 @@ export async function deployWeb(o: { instance: string; slug: string }): Promise<
 if (process.argv[1]?.endsWith('deploy-web.ts')) {
   const [instance, slug] = process.argv.slice(2);
   if (!instance || !slug) throw new Error('使い方: npx tsx scripts/deploy-web.ts <instance> <slug>');
-  deployWeb({ instance, slug }).then((url) => console.log(`デモの URL: ${url}`));
+  deployWeb({ instance, slug }).then((url) => console.log(`デモの URL: ${url}`)).catch((err) => {
+    console.error(`エラー: デプロイに失敗しました。\n${err instanceof Error ? err.message : String(err)}`);
+    process.exitCode = 1;
+  });
 }
