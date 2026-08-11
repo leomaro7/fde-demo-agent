@@ -238,6 +238,23 @@ InvokeHarness を叩く構成を選んだ場合にだけ要る。SDK や CLI を
 | Cognito Hosted UI ドメイン | **リージョン内で全アカウント共通の名前空間** |
 | Amplify のブランチ自動検出 | パターンを設定しても **push で発火しなかった**。明示的に `CreateBranch` する |
 | Amplify アプリ | `Repository` も `AccessToken` も**必須ではない**。未接続で作れる |
+| Amplify の手動デプロイ | **自前の S3 バケットは要らない**（2026-08-11 確認）。下記の 3 手 |
+| `InvokeHarness` のリクエスト | `{ harnessArn, runtimeSessionId, messages }`。`messages[].content[]` は union で `{text}` / `{toolUse}` / `{toolResult}` / `{reasoningContent}`。`toolResult` は `{ toolUseId, content: [{text}], status }` |
+
+### Amplify の手動デプロイ（リポジトリ未接続）
+
+```bash
+# 1. デプロイ枠を作る。jobId と zipUploadUrl が返る（自前バケット不要）
+aws amplify create-deployment --app-id <id> --branch-name <branch> --region ap-northeast-1
+# 2. 返ってきた URL に ZIP を PUT する
+curl -X PUT --upload-file dist.zip "<zipUploadUrl>"
+# 3. 反映する
+aws amplify start-deployment --app-id <id> --branch-name <branch> --job-id <jobId> --region ap-northeast-1
+```
+
+`create-deployment` に `fileMap` を渡すと `zipUploadUrl` の代わりに
+`fileUploadUrls`（ファイル名 → URL のマップ）が返る。**ZIP のほうが手数が少ない。**
+`start-deployment` の `sourceUrlType` の既定は `ZIP`。
 | Transaction Search | **アカウント・リージョンごとに 1 つのグローバル設定**。CFn スタックに含めると、削除時に他プロジェクトのトレースまで止まる |
 | IAM の `--description` | **ASCII のみ**。日本語を入れると `ValidationError` |
 | AgentCore の提供リージョン | ap-northeast-1 で利用可。`jp.anthropic.claude-*` で**推論も国内完結** |
