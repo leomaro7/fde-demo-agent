@@ -1,4 +1,5 @@
 import items from './seed/items.json' with { type: 'json' };
+import type { ToolRegistry } from '../../web/src/agent/toolLoop.js';
 
 /**
  * キーワードで seed を引く。
@@ -15,3 +16,6 @@ export function search(input: { keyword: string }): string {
   }
   return hits.map((h) => `[${h.id}] ${h.text}`).join('\n');
 }
+
+/** demo.ts の tools 宣言と名前を合わせること。ここが食い違うとツールが呼ばれない。 */
+export const tools: ToolRegistry = { search: (input) => search(input as { keyword: string }) };
