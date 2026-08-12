@@ -30,7 +30,9 @@ interface PendingTool {
  * contentBlockIndex ごとに連結し、contentBlockStop で完成とみなす。
  */
 export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
-  const maxRounds = o.maxRounds ?? 5;
+  // ツール 2 つの案件で「各ツール 2 回」を逐次に使うと 4 往復 + 最終応答でちょうど 5。
+  // 余裕が無いので 6 にしてある
+  const maxRounds = o.maxRounds ?? 6;
   let messages = [...o.messages];
 
   for (let round = 0; round < maxRounds; round++) {

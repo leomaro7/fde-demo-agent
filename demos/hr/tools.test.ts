@@ -48,6 +48,26 @@ describe('searchPastCases', () => {
   });
 });
 
+describe('エージェントが自然に打つ検索語で引けるか', () => {
+  // demo-quality の指摘。質問文の語をそのまま渡されると AND で空振りし、
+  // 呼び出し回数の上限（2 回）を使い切って、答えられるはずの質問が拒否になる
+  it('1 問目: 「入社」を含む語でも第12条に当たる', () => {
+    expect(searchRegulations({ keyword: '入社 慶弔休暇' })).toContain('第12条');
+    expect(searchRegulations({ keyword: '慶弔休暇' })).toContain('第12条');
+  });
+
+  it('2 問目: 「週3日」を含む語でも第18条に当たる', () => {
+    expect(searchRegulations({ keyword: '在宅勤務 週3日' })).toContain('第18条');
+    expect(searchRegulations({ keyword: '介護 在宅勤務' })).toContain('第18条');
+  });
+
+  it('3 問目: 退職・貸与・競合のどの語からでも二次の事例に当たる', () => {
+    for (const keyword of ['退職 競合他社', '貸与 データ', '競合他社', '貸与PC']) {
+      expect(searchPastCases({ keyword })).toContain('CASE-2025-0731');
+    }
+  });
+});
+
 describe('3 問と seed の突き合わせ', () => {
   it('1 問目「入社半年の慶弔休暇」は規程から答えられる', () => {
     expect(searchRegulations({ keyword: '慶弔休暇' })).toContain('勤続6か月以上');
