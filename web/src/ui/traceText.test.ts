@@ -57,4 +57,32 @@ describe('toTraceLines', () => {
     ];
     expect(toTraceLines(events)[0].detail).toContain('error');
   });
+
+  it('2 つのツールが走ったとき、それぞれの結果行が対応するツール名で区別できる', () => {
+    const events: StreamEvent[] = [
+      { kind: 'toolUse', toolUseId: 't1', name: 'search', type: 'tool_use', contentBlockIndex: 0 },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"keyword":"出張"}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 0 },
+      { kind: 'toolUse', toolUseId: 't2', name: 'code', type: 'server_tool_use', contentBlockIndex: 1 },
+      { kind: 'toolUseInput', contentBlockIndex: 1, input: '{"code":"print(1)"}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 1 },
+      { kind: 'toolResult', toolUseId: 't1', status: 'success' },
+      { kind: 'toolResult', toolUseId: 't2', status: 'error' },
+    ];
+    const lines = toTraceLines(events);
+    const resultLines = lines.filter((l) => l.label.startsWith('結果'));
+    expect(resultLines).toHaveLength(2);
+    expect(resultLines[0].label).toContain('search');
+    expect(resultLines[0].detail).toContain('success');
+    expect(resultLines[1].label).toContain('code');
+    expect(resultLines[1].detail).toContain('error');
+  });
+
+  it('対応する toolUse が見つからない toolResult でも落ちずに従来どおりの表示にする', () => {
+    const events: StreamEvent[] = [{ kind: 'toolResult', toolUseId: '不明な ID', status: 'success' }];
+    const lines = toTraceLines(events);
+    expect(lines).toHaveLength(1);
+    expect(lines[0].label).toBe('結果');
+    expect(lines[0].detail).toContain('success');
+  });
 });

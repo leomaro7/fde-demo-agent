@@ -27,12 +27,16 @@ const WHO: Record<string, string> = {
 
 export function toTraceLines(events: readonly StreamEvent[]): TraceLine[] {
   const pending = new Map<number, { name: string; type: string; raw: string }>();
+  // toolUseId からツール名を引けるようにしておく。ブラウザ側と Harness 側のツールが
+  // 同じストリームに混ざるため、これが無いと「結果」行がどのツールのものか分からない。
+  const toolNameById = new Map<string, string>();
   const lines: TraceLine[] = [];
 
   for (const e of events) {
     switch (e.kind) {
       case 'toolUse':
         pending.set(e.contentBlockIndex, { name: e.name, type: e.type, raw: '' });
+        toolNameById.set(e.toolUseId, e.name);
         break;
       case 'toolUseInput': {
         const p = pending.get(e.contentBlockIndex);
@@ -49,9 +53,12 @@ export function toTraceLines(events: readonly StreamEvent[]): TraceLine[] {
         });
         break;
       }
-      case 'toolResult':
-        lines.push({ label: '結果', detail: e.status });
+      case 'toolResult': {
+        // 対応するツール名が見つからない場合も落とさず、従来どおり「結果」とだけ出す
+        const name = toolNameById.get(e.toolUseId);
+        lines.push({ label: name ? `結果（${name}）` : '結果', detail: e.status });
         break;
+      }
     }
   }
   return lines;

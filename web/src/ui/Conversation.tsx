@@ -21,7 +21,7 @@ export function Conversation(props: {
   };
 
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }}>
+    <section style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, flex: 1 }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
         {props.messages.map((m, i) => {
           const text = visibleText(m);
