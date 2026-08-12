@@ -88,7 +88,8 @@ messageStop       {"stopReason":"tool_use"}
 | `start.toolUse` の中身 | `name` / `toolUseId` / **`type`**（`tool_use` / `mcp_tool_use` / `server_tool_use`） |
 | **`type` は「誰が実行したか」を表さない** | **2026-08-12 実測。** `agentcore_code_interpreter` を宣言したとき、Harness 側で走る `code_interpreter` / `file_operations` / `shell` も**すべて `type: "tool_use"`** で来た。`server_tool_use` は観測できていない。**執行者の判別に `type` を使ってはいけない** |
 | Code Interpreter が出すツール名 | `code_interpreter` / `file_operations` / `shell` の 3 つ。**宣言した名前（例: `code_interpreter`）以外も出る** |
-| Code Interpreter の実行 | `executeCode` は **error になることがある**（pandas を import する Python を渡して失敗）。エージェントは `file_operations` で `/tmp` に書き、`shell` で `python3` を叩いて自力で回避した |
+| Code Interpreter の実行 | **`executeCode` は毎回 error になった**（4 回中 4 回。`language` の有無を問わず）。一方 **`shell` の `python3` は成功し、pandas も使えた**。原因は未調査。**`shell` を使うよう指示文で誘導するのが確実** |
+| 失敗が利用者に見える | エージェントは自力で `shell` に切り替えて回復するが、**「code_interpreter が使えないため」と回答文に書いてしまう**。商談では製品が壊れて見える。**「実行環境で起きたことを回答に書かない」と指示文に入れること** |
 | 本文の差分 | `delta.text`。ツール引数の差分（`delta.toolUse.input`）と**同じ `contentBlockDelta` で来る**ので、中身で振り分ける |
 | `messageStop` | `inline_function` を使うと設計どおり `{"stopReason":"tool_use"}` で止まる |
 
