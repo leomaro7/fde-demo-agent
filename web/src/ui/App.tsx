@@ -18,7 +18,14 @@ import { tools } from '../../../demos/smoke/tools.js';
 let config: WebConfig | null = null;
 let configError: string | null = null;
 try {
-  config = readConfig(import.meta.env as unknown as Record<string, string | undefined>);
+  // オブジェクトごと渡すと Vite の define による静的置換が効かない。
+  // vite.config.ts が import.meta.env.VITE_* を 1 つずつ define しているため、
+  // ここでも 1 つずつプロパティ参照する形で渡す
+  config = readConfig({
+    VITE_HARNESS_ARN: import.meta.env.VITE_HARNESS_ARN,
+    VITE_COGNITO_DOMAIN: import.meta.env.VITE_COGNITO_DOMAIN,
+    VITE_CLIENT_ID: import.meta.env.VITE_CLIENT_ID,
+  });
 } catch (e) {
   configError = (e as Error).message;
 }
