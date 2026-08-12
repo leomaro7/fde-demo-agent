@@ -86,6 +86,9 @@ messageStop       {"stopReason":"tool_use"}
 |---|---|
 | **ツールの引数は `contentBlockStart` に入らない** | **`contentBlockDelta.delta.toolUse.input` に JSON 文字列の断片として流れる。** 呼び出し側が `contentBlockIndex` ごとに連結し、`contentBlockStop` で完成とみなして `JSON.parse` する。**ここを実装しないとツールループが引数を組み立てられない** |
 | `start.toolUse` の中身 | `name` / `toolUseId` / **`type`**（`tool_use` / `mcp_tool_use` / `server_tool_use`） |
+| **`type` は「誰が実行したか」を表さない** | **2026-08-12 実測。** `agentcore_code_interpreter` を宣言したとき、Harness 側で走る `code_interpreter` / `file_operations` / `shell` も**すべて `type: "tool_use"`** で来た。`server_tool_use` は観測できていない。**執行者の判別に `type` を使ってはいけない** |
+| Code Interpreter が出すツール名 | `code_interpreter` / `file_operations` / `shell` の 3 つ。**宣言した名前（例: `code_interpreter`）以外も出る** |
+| Code Interpreter の実行 | `executeCode` は **error になることがある**（pandas を import する Python を渡して失敗）。エージェントは `file_operations` で `/tmp` に書き、`shell` で `python3` を叩いて自力で回避した |
 | 本文の差分 | `delta.text`。ツール引数の差分（`delta.toolUse.input`）と**同じ `contentBlockDelta` で来る**ので、中身で振り分ける |
 | `messageStop` | `inline_function` を使うと設計どおり `{"stopReason":"tool_use"}` で止まる |
 

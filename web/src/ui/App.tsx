@@ -153,7 +153,7 @@ export function App() {
       {error && <p style={{ color: '#b91c1c', padding: '0 1rem' }}>{error}</p>}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <Conversation messages={messages} busy={busy} examples={demo.examples} onSend={send} />
-        <TraceView lines={toTraceLines(events)} />
+        <TraceView lines={toTraceLines(events, Object.keys(tools))} />
       </div>
     </main>
   );
