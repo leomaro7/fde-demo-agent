@@ -15,4 +15,12 @@ describe('search', () => {
   it('文字列を返す（toolResult.content は text のみ受け付けるため）', () => {
     expect(typeof search({ keyword: '経費' })).toBe('string');
   });
+
+  it('「備品」で引くと A-002 が返る', () => {
+    expect(search({ keyword: '備品' })).toContain('A-002');
+  });
+
+  it('「購入」で引くと A-002 が返る', () => {
+    expect(search({ keyword: '購入' })).toContain('A-002');
+  });
 });
