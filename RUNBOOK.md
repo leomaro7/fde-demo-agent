@@ -128,13 +128,20 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 | `seed/*.json` | ダミーデータ |
 | `tools.ts` | 検索処理と、名前 → 関数の登録表 |
 
-`infra/bin/app.ts` の案件一覧に import して足す（Harness に指示文を焼くのに使う）。
+**`demos/index.ts` の登録表に 1 行足す。これだけでよい。**
 
-**画面側にも同じ import が要る。** `web/src/ui/App.tsx` は
-`demos/smoke/demo.js` と `demos/smoke/tools.js` を固定で import している。
-この 2 行を新しい案件の `demo.js` / `tools.js` に差し替えること。
-ここを忘れると、Harness の指示文だけ新しい案件になり、画面（クライアント名・
-例示 3 問・検索ツール）は smoke のまま配信される。
+```ts
+export const demos: Record<string, DemoEntry> = {
+  smoke: { demo: smokeDemo, tools: smokeTools },
+  <slug>: { demo: <slug>Demo, tools: <slug>Tools },   // ← 足す
+};
+```
+
+CDK（`infra/bin/app.ts`）も画面（`web/src/ui/App.tsx`）も、どちらもこの登録表を
+見ている。**どちらか片方だけ直すという事故が起きない。**
+
+配信する案件は `scripts/deploy-web.ts` の引数（slug）で決まり、
+`VITE_DEMO_SLUG` としてビルドに焼き込まれる。**ソースは書き換えない。**
 
 **`slug` は英数字とハイフン。** `<instance>_<slug>` が 40 文字以内に収まること
 （ハイフンは `_` に変換される）。超えると synth で落ちる。

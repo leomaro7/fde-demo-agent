@@ -9,8 +9,9 @@ import { Conversation } from './Conversation.js';
 import { TraceView } from './TraceView.js';
 import { toTraceLines } from './traceText.js';
 import type { StreamEvent } from '../agent/streamParser.js';
-import { demo } from '../../../demos/hr/demo.js';
-import { tools } from '../../../demos/hr/tools.js';
+import { pickDemo } from '../../../demos/index.js';
+import type { DemoConfig } from '../../../infra/lib/demo-config.js';
+import type { ToolRegistry } from '../agent/toolLoop.js';
 
 // モジュールのトップレベルで投げると、React が描画を始める前に例外が飛び、
 // createRoot(...).render() にも到達せず画面が真っ白になる。
@@ -25,9 +26,24 @@ try {
     VITE_HARNESS_ARN: import.meta.env.VITE_HARNESS_ARN,
     VITE_COGNITO_DOMAIN: import.meta.env.VITE_COGNITO_DOMAIN,
     VITE_CLIENT_ID: import.meta.env.VITE_CLIENT_ID,
+    VITE_DEMO_SLUG: import.meta.env.VITE_DEMO_SLUG,
   });
 } catch (e) {
   configError = (e as Error).message;
+}
+
+// 案件も同じ形で取り出す。登録されていない slug のときに投げるので、
+// ここも画面に出せるよう持ち回る（描画前に投げると画面が真っ白になる）
+let demo: DemoConfig | null = null;
+let tools: ToolRegistry = {};
+if (config) {
+  try {
+    const entry = pickDemo(config.demoSlug);
+    demo = entry.demo;
+    tools = entry.tools;
+  } catch (e) {
+    configError = (e as Error).message;
+  }
 }
 const redirectUri = `${window.location.origin}/`;
 
@@ -143,6 +159,7 @@ export function App() {
     }
   };
 
+  if (!config || !demo) return <p style={{ padding: '2rem' }}>{error ?? '設定を読み込んでいます…'}</p>;
   if (!token) return <p style={{ padding: '2rem' }}>{error ?? 'ログインしています…'}</p>;
 
   return (

@@ -1,9 +1,7 @@
 import { App } from 'aws-cdk-lib';
 import { FoundationStack } from '../lib/foundation-stack.js';
 import { DemoStack } from '../lib/demo-stack.js';
-import { demo as smoke } from '../../demos/smoke/demo.js';
-import { demo as sales } from '../../demos/sales/demo.js';
-import { demo as hr } from '../../demos/hr/demo.js';
+import { demos } from '../../demos/index.js';
 
 const app = new App();
 
@@ -18,7 +16,7 @@ const env = { region: 'ap-northeast-1', account: process.env.CDK_DEFAULT_ACCOUNT
 const foundationStackName = `FdeDemo-${instance}-Foundation`;
 const foundation = new FoundationStack(app, foundationStackName, { instance, env });
 
-for (const demo of [smoke, sales, hr]) {
+for (const { demo } of Object.values(demos)) {
   const demoStack = new DemoStack(app, `FdeDemo-${instance}-${demo.slug}`, {
     instance,
     foundationStackName,
