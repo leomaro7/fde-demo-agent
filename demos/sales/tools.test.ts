@@ -31,13 +31,46 @@ describe('getSales', () => {
     expect(typeof getSales({})).toBe('string');
   });
 
+  /** CSV の行から下期だけを取り出して前年比を出す。 */
+  function h2Ratio(csv: string): number {
+    const rows = csv.trim().split('\n').slice(1).filter((r) => Number(r.split(',')[2].slice(5)) >= 7);
+    const sales = rows.reduce((a, r) => a + Number(r.split(',')[3]), 0);
+    const prev = rows.reduce((a, r) => a + Number(r.split(',')[4]), 0);
+    return sales / prev;
+  }
+
   it('仕込んだ傾向がデータに入っている（郊外型の下期が前年割れ）', () => {
     // この案件の山場。データが平坦だとエージェントに発見させるものが無くなる
-    const rows = getSales({ type: '郊外型' }).trim().split('\n').slice(1);
-    const h2 = rows.filter((r) => Number(r.split(',')[2].slice(5)) >= 7);
-    const sales = h2.reduce((a, r) => a + Number(r.split(',')[3]), 0);
-    const prev = h2.reduce((a, r) => a + Number(r.split(',')[4]), 0);
-    expect(sales / prev).toBeLessThan(0.92);
+    expect(h2Ratio(getSales({ type: '郊外型' }))).toBeLessThan(0.92);
+  });
+
+  it('前橋店だけ下期を持ちこたえている（二段目の発見）', () => {
+    // 「郊外型が全部だめ」ではなく「4 店のうち 3 店」。商談で 2 段目の発見になる
+    expect(h2Ratio(getSales({ store: '前橋店' }))).toBeGreaterThan(0.94);
+    for (const store of ['つくば店', '郡山店', '甲府店']) {
+      expect(h2Ratio(getSales({ store }))).toBeLessThan(0.88);
+    }
+  });
+
+  it('同じタイプでも店舗ごとに数字がばらついている（作ったデータに見えないこと）', () => {
+    // 前年比が小数第 1 位まで全店一致していると「これ作ったデータですよね」で
+    // 説得力が飛ぶ。ばらつきがあることをテストで固定する
+    const ratios = ['銀座店', '新宿店', '渋谷店', '池袋店'].map((store) =>
+      Number(h2Ratio(getSales({ store })).toFixed(3)),
+    );
+    expect(new Set(ratios).size).toBe(ratios.length);
+  });
+
+  it('過去の確定値である（未来の月に実績が入っていない）', () => {
+    // 8 月の商談で 12 月の実績が出てくると「もう出ているんですか」で話が止まる
+    const months = getSales({}).trim().split('\n').slice(1).map((r) => r.split(',')[2]);
+    expect(new Set(months).size).toBe(12);
+    expect([...new Set(months)].every((m) => m.startsWith('2025-'))).toBe(true);
+  });
+
+  it('部分一致で引ける（語尾を落とした指定でも 0 件にならない）', () => {
+    expect(getSales({ type: '郊外' }).trim().split('\n')).toHaveLength(1 + 4 * 12);
+    expect(getSales({ store: 'つくば' }).trim().split('\n')).toHaveLength(1 + 12);
   });
 
   it('都心型は前年を上回っている（郊外型だけが落ちていると分かる形）', () => {

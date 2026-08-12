@@ -20,8 +20,12 @@ const HEADER = 'store,type,month,sales,salesPrevYear';
  * json を渡すと unsupported type で拒否される（実測。aws-facts.md 参照）。
  */
 export function getSales(input: SalesQuery): string {
+  // 部分一致にする。エージェントは「郊外」「つくば」のように語尾を落として
+  // 指定してくる。完全一致だと 0 件になり、2 回しかない呼び出しを 1 回無駄にする
   const hits = rows.filter(
-    (r) => (!input.store || r.store === input.store) && (!input.type || r.type === input.type),
+    (r) =>
+      (!input.store || r.store.includes(input.store)) &&
+      (!input.type || r.type.includes(input.type)),
   );
   if (hits.length === 0) {
     const cond = [input.store, input.type].filter(Boolean).join(' / ');

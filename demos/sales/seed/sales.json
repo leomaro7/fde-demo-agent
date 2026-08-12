@@ -2,1009 +2,1009 @@
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 58880000,
-"salesPrevYear": 56080000
+"salesPrevYear": 55758000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 56320000,
-"salesPrevYear": 54150000
+"salesPrevYear": 54050000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 65280000,
-"salesPrevYear": 61580000
+"salesPrevYear": 61701000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 62720000,
-"salesPrevYear": 60890000
+"salesPrevYear": 60019000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 64000000,
-"salesPrevYear": 60950000
+"salesPrevYear": 60207000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 61440000,
-"salesPrevYear": 59080000
+"salesPrevYear": 59883000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 67200000,
-"salesPrevYear": 63400000
+"salesPrevYear": 62570000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 65920000,
-"salesPrevYear": 62780000
+"salesPrevYear": 63446000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 63360000,
-"salesPrevYear": 61510000
+"salesPrevYear": 61515000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 64640000,
-"salesPrevYear": 62150000
+"salesPrevYear": 61738000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 69120000,
-"salesPrevYear": 64600000
+"salesPrevYear": 64298000
 },
 {
 "store": "銀座店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 75520000,
-"salesPrevYear": 71920000
+"salesPrevYear": 72130000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 53360000,
-"salesPrevYear": 50820000
+"salesPrevYear": 50435000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 51040000,
-"salesPrevYear": 49080000
+"salesPrevYear": 48563000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 59160000,
-"salesPrevYear": 55810000
+"salesPrevYear": 55654000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 56840000,
-"salesPrevYear": 55180000
+"salesPrevYear": 54918000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 58000000,
-"salesPrevYear": 55240000
+"salesPrevYear": 54976000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 55680000,
-"salesPrevYear": 53540000
+"salesPrevYear": 54111000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 60900000,
-"salesPrevYear": 57450000
+"salesPrevYear": 56704000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 59740000,
-"salesPrevYear": 56900000
+"salesPrevYear": 57608000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 57420000,
-"salesPrevYear": 55750000
+"salesPrevYear": 56405000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 58580000,
-"salesPrevYear": 56330000
+"salesPrevYear": 56219000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 62640000,
-"salesPrevYear": 58540000
+"salesPrevYear": 59318000
 },
 {
 "store": "新宿店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 68440000,
-"salesPrevYear": 65180000
+"salesPrevYear": 64934000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 50600000,
-"salesPrevYear": 48190000
+"salesPrevYear": 48514000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 48400000,
-"salesPrevYear": 46540000
+"salesPrevYear": 46051000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 56100000,
-"salesPrevYear": 52920000
+"salesPrevYear": 53378000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 53900000,
-"salesPrevYear": 52330000
+"salesPrevYear": 52483000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 55000000,
-"salesPrevYear": 52380000
+"salesPrevYear": 52936000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 52800000,
-"salesPrevYear": 50770000
+"salesPrevYear": 50478000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 57750000,
-"salesPrevYear": 54480000
+"salesPrevYear": 54688000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 56650000,
-"salesPrevYear": 53950000
+"salesPrevYear": 54107000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 54450000,
-"salesPrevYear": 52860000
+"salesPrevYear": 52660000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 55550000,
-"salesPrevYear": 53410000
+"salesPrevYear": 54037000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 59400000,
-"salesPrevYear": 55510000
+"salesPrevYear": 55670000
 },
 {
 "store": "渋谷店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 64900000,
-"salesPrevYear": 61810000
+"salesPrevYear": 61169000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 45080000,
-"salesPrevYear": 42930000
+"salesPrevYear": 43472000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 43120000,
-"salesPrevYear": 41460000
+"salesPrevYear": 41581000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 49980000,
-"salesPrevYear": 47150000
+"salesPrevYear": 47510000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 48020000,
-"salesPrevYear": 46620000
+"salesPrevYear": 46576000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 49000000,
-"salesPrevYear": 46670000
+"salesPrevYear": 46935000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 47040000,
-"salesPrevYear": 45230000
+"salesPrevYear": 45893000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 51450000,
-"salesPrevYear": 48540000
+"salesPrevYear": 48860000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 50470000,
-"salesPrevYear": 48070000
+"salesPrevYear": 48436000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 48510000,
-"salesPrevYear": 47100000
+"salesPrevYear": 46421000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 49490000,
-"salesPrevYear": 47590000
+"salesPrevYear": 47955000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 52920000,
-"salesPrevYear": 49460000
+"salesPrevYear": 49972000
 },
 {
 "store": "池袋店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 57820000,
-"salesPrevYear": 55070000
+"salesPrevYear": 54754000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 43240000,
-"salesPrevYear": 41180000
+"salesPrevYear": 41260000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 41360000,
-"salesPrevYear": 39770000
+"salesPrevYear": 39655000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 47940000,
-"salesPrevYear": 45230000
+"salesPrevYear": 45657000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 46060000,
-"salesPrevYear": 44720000
+"salesPrevYear": 44288000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 47000000,
-"salesPrevYear": 44760000
+"salesPrevYear": 44550000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 45120000,
-"salesPrevYear": 43380000
+"salesPrevYear": 43260000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 49350000,
-"salesPrevYear": 46560000
+"salesPrevYear": 46733000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 48410000,
-"salesPrevYear": 46100000
+"salesPrevYear": 45455000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 46530000,
-"salesPrevYear": 45170000
+"salesPrevYear": 44870000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 47470000,
-"salesPrevYear": 45640000
+"salesPrevYear": 45081000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 50760000,
-"salesPrevYear": 47440000
+"salesPrevYear": 47752000
 },
 {
 "store": "横浜店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 55460000,
-"salesPrevYear": 52820000
+"salesPrevYear": 53585000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 39560000,
-"salesPrevYear": 37680000
+"salesPrevYear": 37569000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 37840000,
-"salesPrevYear": 36380000
+"salesPrevYear": 36385000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 43860000,
-"salesPrevYear": 41380000
+"salesPrevYear": 41029000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 42140000,
-"salesPrevYear": 40910000
+"salesPrevYear": 40364000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 43000000,
-"salesPrevYear": 40950000
+"salesPrevYear": 40490000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 41280000,
-"salesPrevYear": 39690000
+"salesPrevYear": 39352000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 45150000,
-"salesPrevYear": 42590000
+"salesPrevYear": 42078000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 44290000,
-"salesPrevYear": 42180000
+"salesPrevYear": 42464000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 42570000,
-"salesPrevYear": 41330000
+"salesPrevYear": 41613000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 43430000,
-"salesPrevYear": 41760000
+"salesPrevYear": 41205000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 46440000,
-"salesPrevYear": 43400000
+"salesPrevYear": 43321000
 },
 {
 "store": "名古屋栄店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 50740000,
-"salesPrevYear": 48320000
+"salesPrevYear": 48049000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 47840000,
-"salesPrevYear": 45560000
+"salesPrevYear": 45432000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 45760000,
-"salesPrevYear": 44000000
+"salesPrevYear": 43706000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 53040000,
-"salesPrevYear": 50040000
+"salesPrevYear": 49385000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 50960000,
-"salesPrevYear": 49480000
+"salesPrevYear": 49189000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 52000000,
-"salesPrevYear": 49520000
+"salesPrevYear": 49103000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 49920000,
-"salesPrevYear": 48000000
+"salesPrevYear": 47498000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 54600000,
-"salesPrevYear": 51510000
+"salesPrevYear": 52000000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 53560000,
-"salesPrevYear": 51010000
+"salesPrevYear": 50338000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 51480000,
-"salesPrevYear": 49980000
+"salesPrevYear": 49310000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 52520000,
-"salesPrevYear": 50500000
+"salesPrevYear": 50941000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 56160000,
-"salesPrevYear": 52490000
+"salesPrevYear": 52881000
 },
 {
 "store": "梅田店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 61360000,
-"salesPrevYear": 58440000
+"salesPrevYear": 58887000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 34960000,
-"salesPrevYear": 33300000
+"salesPrevYear": 33359000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 33440000,
-"salesPrevYear": 32150000
+"salesPrevYear": 32123000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 38760000,
-"salesPrevYear": 36570000
+"salesPrevYear": 36429000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 37240000,
-"salesPrevYear": 36160000
+"salesPrevYear": 35636000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 38000000,
-"salesPrevYear": 36190000
+"salesPrevYear": 36398000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 36480000,
-"salesPrevYear": 35080000
+"salesPrevYear": 35452000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 39900000,
-"salesPrevYear": 37640000
+"salesPrevYear": 37151000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 39140000,
-"salesPrevYear": 37280000
+"salesPrevYear": 36855000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 37620000,
-"salesPrevYear": 36520000
+"salesPrevYear": 36560000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 38380000,
-"salesPrevYear": 36900000
+"salesPrevYear": 36868000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 41040000,
-"salesPrevYear": 38360000
+"salesPrevYear": 38644000
 },
 {
 "store": "博多店",
 "type": "都心型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 44840000,
-"salesPrevYear": 42700000
+"salesPrevYear": 43074000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 22080000,
-"salesPrevYear": 21650000
+"salesPrevYear": 21711000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 21120000,
-"salesPrevYear": 21120000
+"salesPrevYear": 21312000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 24480000,
-"salesPrevYear": 24240000
+"salesPrevYear": 24529000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 23520000,
-"salesPrevYear": 23060000
+"salesPrevYear": 22879000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 24000000,
-"salesPrevYear": 24000000
+"salesPrevYear": 23976000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 23040000,
-"salesPrevYear": 22810000
+"salesPrevYear": 22971000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 25200000,
-"salesPrevYear": 28310000
+"salesPrevYear": 29200000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 24720000,
-"salesPrevYear": 28410000
+"salesPrevYear": 29220000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 23760000,
-"salesPrevYear": 27000000
+"salesPrevYear": 28085000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 24240000,
-"salesPrevYear": 28190000
+"salesPrevYear": 29205000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 25920000,
-"salesPrevYear": 28800000
+"salesPrevYear": 29589000
 },
 {
 "store": "つくば店",
 "type": "郊外型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 28320000,
-"salesPrevYear": 32180000
+"salesPrevYear": 33594000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 19320000,
-"salesPrevYear": 18940000
+"salesPrevYear": 18721000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 18480000,
-"salesPrevYear": 18480000
+"salesPrevYear": 18667000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 21420000,
-"salesPrevYear": 21210000
+"salesPrevYear": 21420000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 20580000,
-"salesPrevYear": 20180000
+"salesPrevYear": 20336000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 21000000,
-"salesPrevYear": 21000000
+"salesPrevYear": 20875000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 20160000,
-"salesPrevYear": 19960000
+"salesPrevYear": 20120000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 22050000,
-"salesPrevYear": 24780000
+"salesPrevYear": 22363000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 21630000,
-"salesPrevYear": 24860000
+"salesPrevYear": 22816000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 20790000,
-"salesPrevYear": 23620000
+"salesPrevYear": 21455000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 21210000,
-"salesPrevYear": 24660000
+"salesPrevYear": 22140000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 22680000,
-"salesPrevYear": 25200000
+"salesPrevYear": 22817000
 },
 {
 "store": "前橋店",
 "type": "郊外型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 24780000,
-"salesPrevYear": 28160000
+"salesPrevYear": 25893000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 17480000,
-"salesPrevYear": 17140000
+"salesPrevYear": 17256000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 16720000,
-"salesPrevYear": 16720000
+"salesPrevYear": 16838000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 19380000,
-"salesPrevYear": 19190000
+"salesPrevYear": 19207000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 18620000,
-"salesPrevYear": 18250000
+"salesPrevYear": 18166000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 19000000,
-"salesPrevYear": 19000000
+"salesPrevYear": 19095000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 18240000,
-"salesPrevYear": 18060000
+"salesPrevYear": 18059000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 19950000,
-"salesPrevYear": 22420000
+"salesPrevYear": 22931000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 19570000,
-"salesPrevYear": 22490000
+"salesPrevYear": 23837000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 18810000,
-"salesPrevYear": 21380000
+"salesPrevYear": 22208000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 19190000,
-"salesPrevYear": 22310000
+"salesPrevYear": 23010000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 20520000,
-"salesPrevYear": 22800000
+"salesPrevYear": 23723000
 },
 {
 "store": "郡山店",
 "type": "郊外型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 22420000,
-"salesPrevYear": 25480000
+"salesPrevYear": 26564000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-01",
+"month": "2025-01",
 "sales": 15640000,
-"salesPrevYear": 15330000
+"salesPrevYear": 15229000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-02",
+"month": "2025-02",
 "sales": 14960000,
-"salesPrevYear": 14960000
+"salesPrevYear": 14900000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-03",
+"month": "2025-03",
 "sales": 17340000,
-"salesPrevYear": 17170000
+"salesPrevYear": 17305000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-04",
+"month": "2025-04",
 "sales": 16660000,
-"salesPrevYear": 16330000
+"salesPrevYear": 16270000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-05",
+"month": "2025-05",
 "sales": 17000000,
-"salesPrevYear": 17000000
+"salesPrevYear": 17051000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-06",
+"month": "2025-06",
 "sales": 16320000,
-"salesPrevYear": 16160000
+"salesPrevYear": 16063000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-07",
+"month": "2025-07",
 "sales": 17850000,
-"salesPrevYear": 20060000
+"salesPrevYear": 20951000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-08",
+"month": "2025-08",
 "sales": 17510000,
-"salesPrevYear": 20130000
+"salesPrevYear": 21046000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-09",
+"month": "2025-09",
 "sales": 16830000,
-"salesPrevYear": 19120000
+"salesPrevYear": 20132000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-10",
+"month": "2025-10",
 "sales": 17170000,
-"salesPrevYear": 19970000
+"salesPrevYear": 20637000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-11",
+"month": "2025-11",
 "sales": 18360000,
-"salesPrevYear": 20400000
+"salesPrevYear": 20887000
 },
 {
 "store": "甲府店",
 "type": "郊外型",
-"month": "2026-12",
+"month": "2025-12",
 "sales": 20060000,
-"salesPrevYear": 22800000
+"salesPrevYear": 23353000
 }
 ]
