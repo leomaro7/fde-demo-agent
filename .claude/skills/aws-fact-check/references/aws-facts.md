@@ -141,16 +141,19 @@ JWT で案件を分離するという要件からの必然。**
 
 ### ツール実行はフロントと Harness の排他ではない
 
-`HarnessToolUseType` の列挙値が 3 つある。
+`HarnessToolUseType` の列挙値が 3 つある（`tool_use` / `mcp_tool_use` / `server_tool_use`）。
 
-| 値 | 誰が実行するか |
-|---|---|
-| `tool_use` | **呼び出し側**（`inline_function` / return-of-control） |
-| `mcp_tool_use` | **Harness**（`remote_mcp`） |
-| `server_tool_use` | **Harness**（Code Interpreter / Browser など組み込み） |
+> **2026-08-12 訂正 — この 3 値を「誰が実行したか」と読んではいけない。**
+> SDK の型定義から executor を推測して書いていたが、**実測と食い違った。**
+> `agentcore_code_interpreter` を宣言したとき、Harness 側で走る
+> `code_interpreter` / `file_operations` / `shell` が**すべて `type: "tool_use"`**
+> で届いた。`server_tool_use` は一度も観測できていない。
+>
+> **執行者は、案件が登録しているツール名で判別すること。** それが唯一
+> 確かな情報である。上の「実測で分かったこと」の表を見ること。
 
-**同一ストリームに混在しうる。** 前身の「`inline_function` でツールを返しつつ
-Code Interpreter を使う」構成は、すでにこの混在形だった。
+**ツールがフロント実行と Harness 実行で混在すること自体は正しい。**
+`inline_function` でツールを返しつつ Code Interpreter を使う構成は実際に動いた。
 「フロント実行か Harness 実行か」は二者択一ではなく、**ツールごとに選べる**。
 
 `HarnessStopReason`: `end_turn` / `tool_use` / `tool_result` / `max_tokens` /
