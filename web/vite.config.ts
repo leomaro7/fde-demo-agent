@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -27,9 +27,28 @@ function readEnvFile(path: string): string {
 // 指したまま商談に持っていく事故になる）
 const buildEnv = requireBuildEnv(parseEnvText(readEnvFile(envPath)));
 
+/**
+ * 配信する案件だけをビルドに含める。
+ *
+ * 登録表（demos/index.ts）を画面から直接 import すると、Vite が全案件を
+ * バンドルに巻き込み、**クライアントのブラウザに他社のデモデータが配られる**。
+ * 実際にそうなっていた（hr の配信物に sales と smoke の seed が入っていた）。
+ * 要件書 4.1「他案件の画面に入れない」に反する。
+ *
+ * ここで slug から実体へ別名解決することで、選ばれた案件だけが依存グラフに載る。
+ * 登録表は CDK 側（全案件のスタックを作る）とテストが使う。
+ */
+const demoDir = resolve(here, '..', 'demos', buildEnv.VITE_DEMO_SLUG);
+
 export default defineConfig({
   root: here,
   plugins: [react()],
+  resolve: {
+    alias: {
+      '#demo': resolve(demoDir, 'demo.ts'),
+      '#demo-tools': resolve(demoDir, 'tools.ts'),
+    },
+  },
   build: { outDir: '../dist', emptyOutDir: true },
   server: { port: 5173 },
   // Vite は既定で .env ファイルに加えて process.env の VITE_* も import.meta.env に
