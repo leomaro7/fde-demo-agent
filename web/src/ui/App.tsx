@@ -6,6 +6,9 @@ import { decideLoginAction } from '../auth/loginFlow.js';
 import { invokeHarness, newSessionId, HarnessError, type HarnessMessage } from '../agent/harnessClient.js';
 import { runTurn } from '../agent/toolLoop.js';
 import { Conversation } from './Conversation.js';
+import { TraceView } from './TraceView.js';
+import { toTraceLines } from './traceText.js';
+import type { StreamEvent } from '../agent/streamParser.js';
 import { demo } from '../../../demos/smoke/demo.js';
 import { tools } from '../../../demos/smoke/tools.js';
 
@@ -33,6 +36,7 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(configError);
   const [sessionId] = useState(newSessionId);
+  const [events, setEvents] = useState<StreamEvent[]>([]);
 
   useEffect(() => {
     if (!config) return; // 設定不足はすでに configError として画面に出ている
@@ -101,6 +105,7 @@ export function App() {
     const cfg = config;
     setError(null);
     setBusy(true);
+    setEvents([]);
     const next: HarnessMessage[] = [...messages, { role: 'user', content: [{ text }] }];
     setMessages(next);
     try {
@@ -116,6 +121,7 @@ export function App() {
             }),
           tools,
           messages: next,
+          onEvent: (e) => setEvents((prev) => [...prev, e]),
         }),
       );
     } catch (e) {
@@ -138,8 +144,9 @@ export function App() {
         <strong>{demo.clientName}</strong> — デモ
       </header>
       {error && <p style={{ color: '#b91c1c', padding: '0 1rem' }}>{error}</p>}
-      <div style={{ flex: 1, minHeight: 0 }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <Conversation messages={messages} busy={busy} examples={demo.examples} onSend={send} />
+        <TraceView lines={toTraceLines(events)} />
       </div>
     </main>
   );
