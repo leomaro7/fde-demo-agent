@@ -9,8 +9,8 @@ import { Conversation } from './Conversation.js';
 import { TraceView } from './TraceView.js';
 import { toTraceLines } from './traceText.js';
 import type { StreamEvent } from '../agent/streamParser.js';
-import { demo } from '../../../demos/sales/demo.js';
-import { tools } from '../../../demos/sales/tools.js';
+import { demo } from '../../../demos/hr/demo.js';
+import { tools } from '../../../demos/hr/tools.js';
 
 // モジュールのトップレベルで投げると、React が描画を始める前に例外が飛び、
 // createRoot(...).render() にも到達せず画面が真っ白になる。
