@@ -9,8 +9,10 @@ import { Conversation } from './Conversation.js';
 import { TraceView } from './TraceView.js';
 import { toTraceLines } from './traceText.js';
 import type { StreamEvent } from '../agent/streamParser.js';
-import { demo } from '../../../demos/hr/demo.js';
-import { tools } from '../../../demos/hr/tools.js';
+// 配信する案件は vite.config.ts が VITE_DEMO_SLUG から別名解決する。
+// 登録表を直接 import すると全案件がバンドルに入り、他社のデータが配られる
+import { demo } from '#demo';
+import { tools } from '#demo-tools';
 
 // モジュールのトップレベルで投げると、React が描画を始める前に例外が飛び、
 // createRoot(...).render() にも到達せず画面が真っ白になる。
@@ -25,10 +27,12 @@ try {
     VITE_HARNESS_ARN: import.meta.env.VITE_HARNESS_ARN,
     VITE_COGNITO_DOMAIN: import.meta.env.VITE_COGNITO_DOMAIN,
     VITE_CLIENT_ID: import.meta.env.VITE_CLIENT_ID,
+    VITE_DEMO_SLUG: import.meta.env.VITE_DEMO_SLUG,
   });
 } catch (e) {
   configError = (e as Error).message;
 }
+
 const redirectUri = `${window.location.origin}/`;
 
 function clearLoginState() {
@@ -143,6 +147,7 @@ export function App() {
     }
   };
 
+  if (!config) return <p style={{ padding: '2rem' }}>{error ?? '設定を読み込んでいます…'}</p>;
   if (!token) return <p style={{ padding: '2rem' }}>{error ?? 'ログインしています…'}</p>;
 
   return (

@@ -50,7 +50,7 @@ export async function deployWeb(o: { instance: string; slug: string }): Promise<
 
   // ビルド設定はリポジトリの web/.env.local に書く。ビルド成果物だけを一時領域に置く
   console.log(`Instance '${o.instance}' の Slug '${o.slug}' で web/.env.local を上書きします`);
-  writeFileSync(join(REPO_ROOT, 'web/.env.local'), toEnvLines(outputs) + '\n');
+  writeFileSync(join(REPO_ROOT, 'web/.env.local'), toEnvLines(outputs, o.slug) + '\n');
   execFileSync('npm', ['run', 'build:web'], { stdio: 'inherit', cwd: REPO_ROOT });
 
   const work = mkdtempSync(join(tmpdir(), 'fde-demo-'));

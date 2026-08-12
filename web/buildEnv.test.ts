@@ -24,6 +24,7 @@ describe('requireBuildEnv', () => {
     VITE_HARNESS_ARN: 'arn:aws:bedrock-agentcore:ap-northeast-1:123:harness/a_b-c',
     VITE_COGNITO_DOMAIN: 'https://fdedemo0809.auth.ap-northeast-1.amazoncognito.com',
     VITE_CLIENT_ID: 'abc123',
+    VITE_DEMO_SLUG: 'smoke',
   };
 
   it('必須キーが揃っていればそのまま返す', () => {

@@ -14,14 +14,17 @@ const REQUIRED = {
   HostedUiDomain: 'VITE_COGNITO_DOMAIN',
 } as const;
 
-export function toEnvLines(outputs: Record<string, string>): string {
+export function toEnvLines(outputs: Record<string, string>, slug: string): string {
   const missing = Object.keys(REQUIRED).filter((k) => !outputs[k]);
   if (missing.length > 0) {
     throw new Error(`スタックの出力が足りません: ${missing.join(', ')}`);
   }
-  return Object.entries(REQUIRED)
-    .map(([key, envName]) => `${envName}=${outputs[key]}`)
-    .join('\n');
+  if (!slug) throw new Error('slug が指定されていません');
+  return [
+    ...Object.entries(REQUIRED).map(([key, envName]) => `${envName}=${outputs[key]}`),
+    // どの案件を配信するかはスタックの出力ではなく、実行時の引数で決まる
+    `VITE_DEMO_SLUG=${slug}`,
+  ].join('\n');
 }
 
 function stackOutputs(stackName: string): Record<string, string> {
@@ -50,5 +53,5 @@ if (process.argv[1]?.endsWith('stack-outputs.ts')) {
     ...stackOutputs(`FdeDemo-${instance}-Foundation`),
     ...stackOutputs(`FdeDemo-${instance}-${slug}`),
   };
-  console.log(toEnvLines(outputs));
+  console.log(toEnvLines(outputs, slug));
 }

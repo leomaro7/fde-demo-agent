@@ -8,6 +8,14 @@
     "skipLibCheck": true,
     "types": ["node", "vite/client"],
     "noEmit": true,
+    // #demo / #demo-tools は vite.config.ts が VITE_DEMO_SLUG から別名解決する。
+    // 型検査では代表として smoke を指す。全案件が同じ形であることは
+    // demos/index.test.ts が固定している
+    "baseUrl": ".",
+    "paths": {
+      "#demo": ["demos/smoke/demo.ts"],
+      "#demo-tools": ["demos/smoke/tools.ts"]
+    },
     "jsx": "react-jsx"
   },
   "include": ["infra/**/*.ts", "web/**/*.ts", "web/**/*.tsx", "demos/**/*.ts", "scripts/**/*.ts"]

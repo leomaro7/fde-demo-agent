@@ -5,6 +5,7 @@ const full = {
   VITE_HARNESS_ARN: 'arn:aws:bedrock-agentcore:ap-northeast-1:1:harness/a_b-c',
   VITE_COGNITO_DOMAIN: 'https://x.auth.ap-northeast-1.amazoncognito.com',
   VITE_CLIENT_ID: 'client-1',
+  VITE_DEMO_SLUG: 'smoke',
 };
 
 describe('readConfig', () => {
@@ -13,6 +14,7 @@ describe('readConfig', () => {
       harnessArn: full.VITE_HARNESS_ARN,
       cognitoDomain: full.VITE_COGNITO_DOMAIN,
       clientId: full.VITE_CLIENT_ID,
+      demoSlug: full.VITE_DEMO_SLUG,
       region: 'ap-northeast-1',
     });
   });

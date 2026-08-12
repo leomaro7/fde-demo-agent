@@ -8,7 +8,12 @@
  */
 import { parseEnv } from 'node:util';
 
-export const REQUIRED_KEYS = ['VITE_HARNESS_ARN', 'VITE_COGNITO_DOMAIN', 'VITE_CLIENT_ID'] as const;
+export const REQUIRED_KEYS = [
+  'VITE_HARNESS_ARN',
+  'VITE_COGNITO_DOMAIN',
+  'VITE_CLIENT_ID',
+  'VITE_DEMO_SLUG',
+] as const;
 
 /** .env 形式のテキストを解析する。 */
 export function parseEnvText(text: string): Record<string, string> {
