@@ -46,12 +46,17 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
           text += event.text;
           break;
         case 'toolUse':
-          // type が 3 種ある。ブラウザ側（inline_function）が実行するのは
-          // 'tool_use' だけ。'mcp_tool_use' / 'server_tool_use'（Code Interpreter 等）は
-          // Harness が既に実行済みなので、溜めない・実行しない・toolResult を返さない。
-          // ここで pending に積まなければ、後続の toolUseInput / contentBlockStop は
-          // p が見つからず何もしない（既存の分岐がそのまま効く）
-          if (event.type === 'tool_use') {
+          // **案件が登録しているツールだけ**を実行対象にする。
+          //
+          // 当初は event.type（tool_use / mcp_tool_use / server_tool_use）で判別していたが、
+          // 2026-08-12 の実測で、Harness 側が実行する Code Interpreter の
+          // code_interpreter / file_operations / shell も type: 'tool_use' で来ることが
+          // 分かった。**type は「誰が実行したか」を表していない。**
+          //
+          // 登録表は案件が持っている確かな情報なので、そちらを唯一の判断材料にする。
+          // ここで積まなければ、後続の toolUseInput / contentBlockStop は
+          // p が見つからず何もしない（既存の分岐がそのまま効く）。
+          if (o.tools[event.name]) {
             pending.set(event.contentBlockIndex, {
               toolUseId: event.toolUseId,
               name: event.name,
@@ -78,7 +83,28 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
       }
     }
 
-    if (stopReason !== 'tool_use' || completed.length === 0) {
+    if (stopReason === 'tool_use' && completed.length === 0) {
+      // Harness はツールの結果を待っているのに、こちらに実行できるものが無い。
+      // demo.ts の tools 宣言と tools.ts の登録表が食い違っているときに起きる。
+      // 黙って空の応答を返すと、原因の分からないまま画面が止まる
+      return [
+        ...messages,
+        {
+          role: 'assistant',
+          content: [
+            {
+              text:
+                text +
+                '\n\n（エージェントがツールの結果を待っていますが、このデモに登録されて' +
+                'いないツールが要求されました。demo.ts のツール宣言と tools.ts の登録表を' +
+                '突き合わせてください。）',
+            },
+          ],
+        },
+      ];
+    }
+
+    if (stopReason !== 'tool_use') {
       return [...messages, { role: 'assistant', content: [{ text: text + stopNote(stopReason) }] }];
     }
 

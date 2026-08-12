@@ -86,6 +86,10 @@ messageStop       {"stopReason":"tool_use"}
 |---|---|
 | **ツールの引数は `contentBlockStart` に入らない** | **`contentBlockDelta.delta.toolUse.input` に JSON 文字列の断片として流れる。** 呼び出し側が `contentBlockIndex` ごとに連結し、`contentBlockStop` で完成とみなして `JSON.parse` する。**ここを実装しないとツールループが引数を組み立てられない** |
 | `start.toolUse` の中身 | `name` / `toolUseId` / **`type`**（`tool_use` / `mcp_tool_use` / `server_tool_use`） |
+| **`type` は「誰が実行したか」を表さない** | **2026-08-12 実測。** `agentcore_code_interpreter` を宣言したとき、Harness 側で走る `code_interpreter` / `file_operations` / `shell` も**すべて `type: "tool_use"`** で来た。`server_tool_use` は観測できていない。**執行者の判別に `type` を使ってはいけない** |
+| Code Interpreter が出すツール名 | `code_interpreter` / `file_operations` / `shell` の 3 つ。**宣言した名前（例: `code_interpreter`）以外も出る** |
+| Code Interpreter の実行 | **`executeCode` は毎回 error になった**（4 回中 4 回。`language` の有無を問わず）。一方 **`shell` の `python3` は成功し、pandas も使えた**。原因は未調査。**`shell` を使うよう指示文で誘導するのが確実** |
+| 失敗が利用者に見える | エージェントは自力で `shell` に切り替えて回復するが、**「code_interpreter が使えないため」と回答文に書いてしまう**。商談では製品が壊れて見える。**「実行環境で起きたことを回答に書かない」と指示文に入れること** |
 | 本文の差分 | `delta.text`。ツール引数の差分（`delta.toolUse.input`）と**同じ `contentBlockDelta` で来る**ので、中身で振り分ける |
 | `messageStop` | `inline_function` を使うと設計どおり `{"stopReason":"tool_use"}` で止まる |
 
@@ -138,16 +142,19 @@ JWT で案件を分離するという要件からの必然。**
 
 ### ツール実行はフロントと Harness の排他ではない
 
-`HarnessToolUseType` の列挙値が 3 つある。
+`HarnessToolUseType` の列挙値が 3 つある（`tool_use` / `mcp_tool_use` / `server_tool_use`）。
 
-| 値 | 誰が実行するか |
-|---|---|
-| `tool_use` | **呼び出し側**（`inline_function` / return-of-control） |
-| `mcp_tool_use` | **Harness**（`remote_mcp`） |
-| `server_tool_use` | **Harness**（Code Interpreter / Browser など組み込み） |
+> **2026-08-12 訂正 — この 3 値を「誰が実行したか」と読んではいけない。**
+> SDK の型定義から executor を推測して書いていたが、**実測と食い違った。**
+> `agentcore_code_interpreter` を宣言したとき、Harness 側で走る
+> `code_interpreter` / `file_operations` / `shell` が**すべて `type: "tool_use"`**
+> で届いた。`server_tool_use` は一度も観測できていない。
+>
+> **執行者は、案件が登録しているツール名で判別すること。** それが唯一
+> 確かな情報である。上の「実測で分かったこと」の表を見ること。
 
-**同一ストリームに混在しうる。** 前身の「`inline_function` でツールを返しつつ
-Code Interpreter を使う」構成は、すでにこの混在形だった。
+**ツールがフロント実行と Harness 実行で混在すること自体は正しい。**
+`inline_function` でツールを返しつつ Code Interpreter を使う構成は実際に動いた。
 「フロント実行か Harness 実行か」は二者択一ではなく、**ツールごとに選べる**。
 
 `HarnessStopReason`: `end_turn` / `tool_use` / `tool_result` / `max_tokens` /

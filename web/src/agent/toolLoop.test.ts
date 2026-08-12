@@ -88,18 +88,45 @@ describe('runTurn', () => {
     });
   });
 
-  it('知らないツールを呼ばれたら error の toolResult を返して会話を続ける', async () => {
-    const unknown: StreamEvent[] = [
-      { kind: 'toolUse', toolUseId: 'tu-9', name: 'nosuch', type: 'tool_use', contentBlockIndex: 0 },
+  it('登録表に無いツールは Harness が実行したものとみなし、toolResult を返さない', async () => {
+    // Code Interpreter の code_interpreter / file_operations / shell は
+    // type: 'tool_use' で来るが Harness が実行済み。こちらが結果を返すと二重になる
+    const serverSide: StreamEvent[] = [
+      { kind: 'toolUse', toolUseId: 'tu-s', name: 'shell', type: 'tool_use', contentBlockIndex: 0 },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"command":"ls"}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 0 },
+      { kind: 'toolResult', toolUseId: 'tu-s', status: 'success' },
+      { kind: 'text', text: '集計しました。' },
+      { kind: 'stop', reason: 'end_turn' },
+    ];
+    const { invoke, seen } = fakeInvoke([serverSide]);
+    const messages = await runTurn({
+      invoke,
+      tools: { get_sales: () => 'csv' },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+    // 往復していない = toolResult を送り返していない
+    expect(seen).toHaveLength(1);
+    expect(messages.at(-1)).toEqual({ role: 'assistant', content: [{ text: '集計しました。' }] });
+  });
+
+  it('登録表に無いツールを Harness が待っているなら、理由を画面に出す（黙って止まらない）', async () => {
+    // demo.ts のツール宣言と tools.ts の登録表が食い違うと起きる
+    const waiting: StreamEvent[] = [
+      { kind: 'toolUse', toolUseId: 'tu-x', name: 'typo_tool', type: 'tool_use', contentBlockIndex: 0 },
       { kind: 'toolUseInput', contentBlockIndex: 0, input: '{}' },
       { kind: 'contentBlockStop', contentBlockIndex: 0 },
       { kind: 'stop', reason: 'tool_use' },
     ];
-    const { invoke, seen } = fakeInvoke([unknown, answer]);
-    await runTurn({ invoke, tools: {}, messages: [{ role: 'user', content: [{ text: 'x' }] }] });
-    const result = seen[1].at(-1)!.content[0] as { toolResult: { status: string; content: { text: string }[] } };
-    expect(result.toolResult.status).toBe('error');
-    expect(result.toolResult.content[0].text).toContain('nosuch');
+    const { invoke } = fakeInvoke([waiting]);
+    const messages = await runTurn({
+      invoke,
+      tools: { get_sales: () => 'csv' },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+    });
+    const out = (messages.at(-1)!.content[0] as { text: string }).text;
+    expect(out).toContain('登録されて');
+    expect(out).toContain('tools.ts');
   });
 
   it('ツールが投げても会話を止めず、error として返す', async () => {

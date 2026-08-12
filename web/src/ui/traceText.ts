@@ -19,13 +19,19 @@ export function extractCode(input: unknown, maxLength = 400): string {
   return source.length > maxLength ? `${source.slice(0, maxLength)}…` : source;
 }
 
-const WHO: Record<string, string> = {
-  tool_use: 'ブラウザ',
-  mcp_tool_use: 'Harness (MCP)',
-  server_tool_use: 'Harness',
-};
-
-export function toTraceLines(events: readonly StreamEvent[]): TraceLine[] {
+/**
+ * 誰が実行したかは、**案件が登録しているツール名**で判別する。
+ *
+ * `StreamEvent.type` は使えない。2026-08-12 の実測で、Harness 側が実行する
+ * Code Interpreter の code_interpreter / file_operations / shell も
+ * `type: 'tool_use'` で来ることが分かった。**type は執行者を表していない。**
+ */
+export function toTraceLines(
+  events: readonly StreamEvent[],
+  /** 案件がブラウザ側で実行するツールの名前。これ以外は Harness が実行したもの。 */
+  ownToolNames: readonly string[] = [],
+): TraceLine[] {
+  const own = new Set(ownToolNames);
   const pending = new Map<number, { name: string; type: string; raw: string }>();
   // toolUseId からツール名を引けるようにしておく。ブラウザ側と Harness 側のツールが
   // 同じストリームに混ざるため、これが無いと「結果」行がどのツールのものか分からない。
@@ -48,7 +54,7 @@ export function toTraceLines(events: readonly StreamEvent[]): TraceLine[] {
         if (!p) break;
         pending.delete(e.contentBlockIndex);
         lines.push({
-          label: `${p.name}（${WHO[p.type] ?? p.type} が実行）`,
+          label: `${p.name}（${own.has(p.name) ? 'ブラウザ' : 'Harness'} が実行）`,
           detail: extractCode(safeParse(p.raw)),
         });
         break;

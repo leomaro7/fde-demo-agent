@@ -9,8 +9,8 @@ import { Conversation } from './Conversation.js';
 import { TraceView } from './TraceView.js';
 import { toTraceLines } from './traceText.js';
 import type { StreamEvent } from '../agent/streamParser.js';
-import { demo } from '../../../demos/smoke/demo.js';
-import { tools } from '../../../demos/smoke/tools.js';
+import { demo } from '../../../demos/sales/demo.js';
+import { tools } from '../../../demos/sales/tools.js';
 
 // モジュールのトップレベルで投げると、React が描画を始める前に例外が飛び、
 // createRoot(...).render() にも到達せず画面が真っ白になる。
@@ -153,7 +153,7 @@ export function App() {
       {error && <p style={{ color: '#b91c1c', padding: '0 1rem' }}>{error}</p>}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <Conversation messages={messages} busy={busy} examples={demo.examples} onSend={send} />
-        <TraceView lines={toTraceLines(events)} />
+        <TraceView lines={toTraceLines(events, Object.keys(tools))} />
       </div>
     </main>
   );
