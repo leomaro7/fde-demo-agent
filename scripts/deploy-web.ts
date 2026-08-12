@@ -10,8 +10,19 @@
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { toEnvLines } from './stack-outputs.js';
+
+/**
+ * リポジトリのルート。cwd に依存しない。
+ *
+ * web/vite.config.ts は import.meta.url を基準に .env.local を読む。
+ * こちらが cwd 相対で書くと、ルート以外から実行したときに書いた先と読む先がずれ、
+ * 古い設定のままビルドが通る。2026-08-12 に同じ形の事故で 1 件費やしている
+ * （docs/DECISIONS.md）。
+ */
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const REGION = 'ap-northeast-1';
 
@@ -39,12 +50,12 @@ export async function deployWeb(o: { instance: string; slug: string }): Promise<
 
   // ビルド設定はリポジトリの web/.env.local に書く。ビルド成果物だけを一時領域に置く
   console.log(`Instance '${o.instance}' の Slug '${o.slug}' で web/.env.local を上書きします`);
-  writeFileSync('web/.env.local', toEnvLines(outputs) + '\n');
-  execFileSync('npm', ['run', 'build:web'], { stdio: 'inherit' });
+  writeFileSync(join(REPO_ROOT, 'web/.env.local'), toEnvLines(outputs) + '\n');
+  execFileSync('npm', ['run', 'build:web'], { stdio: 'inherit', cwd: REPO_ROOT });
 
   const work = mkdtempSync(join(tmpdir(), 'fde-demo-'));
   const zipPath = join(work, 'dist.zip');
-  execFileSync('zip', ['-qr', zipPath, '.'], { cwd: 'dist' });
+  execFileSync('zip', ['-qr', zipPath, '.'], { cwd: join(REPO_ROOT, 'dist') });
 
   const created = JSON.parse(
     aws(['amplify', 'create-deployment', '--app-id', outputs.AmplifyAppId, '--branch-name', o.slug]),

@@ -206,6 +206,37 @@ describe('runTurn', () => {
     });
   });
 
+  it('server_tool_use の toolUse はブラウザ側では実行しない（Harness が実行済み）', async () => {
+    const search = vi.fn(() => 'ok');
+    // Code Interpreter 等。Harness が既に実行し、結果を踏まえて自分で応答まで終える想定
+    const codeInterpreterRound: StreamEvent[] = [
+      { kind: 'toolUse', toolUseId: 'tu-ci', name: 'code', type: 'server_tool_use', contentBlockIndex: 0 },
+      { kind: 'toolUseInput', contentBlockIndex: 0, input: '{"code": "1+1"}' },
+      { kind: 'contentBlockStop', contentBlockIndex: 0 },
+      { kind: 'toolResult', toolUseId: 'tu-ci', status: 'success' },
+      { kind: 'text', text: '2 です。' },
+      { kind: 'stop', reason: 'end_turn' },
+    ];
+    const seenEvents: StreamEvent[] = [];
+    const { invoke } = fakeInvoke([codeInterpreterRound]);
+    const messages = await runTurn({
+      invoke,
+      tools: { search },
+      messages: [{ role: 'user', content: [{ text: 'x' }] }],
+      onEvent: (e) => seenEvents.push(e),
+    });
+
+    // ブラウザ側のツールは呼ばれない
+    expect(search).not.toHaveBeenCalled();
+    // toolResult を積んでいない = 往復せず、そのターンの text だけが最終応答になる
+    expect(messages.at(-1)).toEqual({
+      role: 'assistant',
+      content: [{ text: '2 です。' }],
+    });
+    // onEvent には Harness 側の実行イベントも含めて全部流れる（画面のトレース用）
+    expect(seenEvents).toEqual(codeInterpreterRound);
+  });
+
   it('複数のツールが同時に呼ばれても contentBlockIndex ごとに断片が混ざらない', async () => {
     const twoToolsInterleaved: StreamEvent[] = [
       { kind: 'toolUse', toolUseId: 'tu-a', name: 'toolA', type: 'tool_use', contentBlockIndex: 0 },

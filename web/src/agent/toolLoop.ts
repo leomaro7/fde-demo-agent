@@ -46,11 +46,18 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
           text += event.text;
           break;
         case 'toolUse':
-          pending.set(event.contentBlockIndex, {
-            toolUseId: event.toolUseId,
-            name: event.name,
-            raw: '',
-          });
+          // type が 3 種ある。ブラウザ側（inline_function）が実行するのは
+          // 'tool_use' だけ。'mcp_tool_use' / 'server_tool_use'（Code Interpreter 等）は
+          // Harness が既に実行済みなので、溜めない・実行しない・toolResult を返さない。
+          // ここで pending に積まなければ、後続の toolUseInput / contentBlockStop は
+          // p が見つからず何もしない（既存の分岐がそのまま効く）
+          if (event.type === 'tool_use') {
+            pending.set(event.contentBlockIndex, {
+              toolUseId: event.toolUseId,
+              name: event.name,
+              raw: '',
+            });
+          }
           break;
         case 'toolUseInput': {
           const p = pending.get(event.contentBlockIndex);
