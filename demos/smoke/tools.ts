@@ -8,9 +8,18 @@ import type { ToolRegistry } from '../../web/src/agent/toolLoop.js';
  * json を渡すと unsupported type で拒否される（実測。aws-facts.md 参照）。
  */
 export function search(input: { keyword: string }): string {
-  const hits = items.filter(
-    (item) => item.keyword.includes(input.keyword) || item.text.includes(input.keyword),
-  );
+  // 半角・全角スペースの両方で区切り、空語は捨てる。
+  const words = input.keyword.split(/[ 　]+/).filter((w) => w.length > 0);
+
+  // 語が 1 つも無い（空文字・空白のみ）場合は該当なし扱いにする。
+  // すべての語を含む項目だけを返す（AND）。OR にすると「精算」のような
+  // 汎用語 1 語だけで無関係な項目（A-001 など）が誤ってヒットしてしまう。
+  const hits =
+    words.length === 0
+      ? []
+      : items.filter((item) =>
+          words.every((w) => item.keyword.includes(w) || item.text.includes(w)),
+        );
   if (hits.length === 0) {
     return `「${input.keyword}」に該当する規程は見つかりませんでした。`;
   }

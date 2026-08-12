@@ -23,4 +23,37 @@ describe('search', () => {
   it('「購入」で引くと A-002 が返る', () => {
     expect(search({ keyword: '購入' })).toContain('A-002');
   });
+
+  it('半角スペース区切りの複数語（AND）で、両方を満たす項目が引ける', () => {
+    const result = search({ keyword: '備品 購入' });
+    expect(result).toContain('A-002');
+  });
+
+  it('いずれか一語しか満たさない項目は引けない（OR誤りの検出）。「精算」だけで A-001 が誤ってヒットしてはいけない', () => {
+    const result = search({ keyword: '会食 立て替え 精算' });
+    expect(result).not.toContain('A-001');
+    expect(result).toContain('見つかりませんでした');
+  });
+
+  it('全角スペース区切りでも複数語の AND 検索ができる', () => {
+    const result = search({ keyword: '備品　購入' });
+    expect(result).toContain('A-002');
+  });
+
+  it('半角と全角スペースが混在していても AND 検索ができる', () => {
+    const result = search({ keyword: '備品　購入 経費' });
+    expect(result).toContain('A-002');
+  });
+
+  it('空白だけの検索語は、見つからなかったと返す', () => {
+    expect(search({ keyword: '   ' })).toContain('見つかりませんでした');
+  });
+
+  it('全角空白だけの検索語も、見つからなかったと返す', () => {
+    expect(search({ keyword: '　　' })).toContain('見つかりませんでした');
+  });
+
+  it('空文字の検索語は、見つからなかったと返す', () => {
+    expect(search({ keyword: '' })).toContain('見つかりませんでした');
+  });
 });
