@@ -6,8 +6,9 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"],
-    "noEmit": true
+    "types": ["node", "vite/client"],
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
-  "include": ["infra/**/*.ts", "web/**/*.ts", "demos/**/*.ts", "scripts/**/*.ts"]
+  "include": ["infra/**/*.ts", "web/**/*.ts", "web/**/*.tsx", "demos/**/*.ts", "scripts/**/*.ts"]
 }

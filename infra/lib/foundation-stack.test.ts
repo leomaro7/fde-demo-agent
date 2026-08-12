@@ -52,6 +52,11 @@ describe('FoundationStack', () => {
     });
   });
 
+  it('Hosted UI の URL を出力する（フロントのログイン先）', () => {
+    const outputs = synth().findOutputs('HostedUiDomain');
+    expect(JSON.stringify(outputs)).toContain('.auth.ap-northeast-1.amazoncognito.com');
+  });
+
   it('案件スタックが要る 4 つを Export する', () => {
     const outputs = synth().findOutputs('*');
     const names = Object.values(outputs).map((o: any) => o.Export?.Name);

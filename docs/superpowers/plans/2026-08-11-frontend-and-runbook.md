@@ -696,12 +696,14 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
       return [...messages, { role: 'assistant', content: [{ text: text + stopNote(stopReason) }] }];
     }
 
-    const toolUseBlocks: HarnessContentBlock[] = [];
+    // モデルはツールを呼ぶ前に前置きを喋ることがある（「規程を確認します」など）。
+    // 捨てると画面に出ないうえ、モデルが自分の発言を履歴から見失う
+    const assistantBlocks: HarnessContentBlock[] = text ? [{ text }] : [];
     const resultBlocks: HarnessContentBlock[] = [];
 
     for (const p of completed) {
       const { input, parseError } = parseInput(p.raw);
-      toolUseBlocks.push({ toolUse: { toolUseId: p.toolUseId, name: p.name, input } });
+      assistantBlocks.push({ toolUse: { toolUseId: p.toolUseId, name: p.name, input } });
       // ツールは 1 回だけ呼ぶ。結果と成否を別々に取りに行くと二重に実行される
       const outcome = await runTool(o.tools, p.name, input, parseError);
       resultBlocks.push({
@@ -716,7 +718,7 @@ export async function runTurn(o: RunTurnOptions): Promise<HarnessMessage[]> {
 
     messages = [
       ...messages,
-      { role: 'assistant', content: toolUseBlocks },
+      { role: 'assistant', content: assistantBlocks },
       { role: 'user', content: resultBlocks },
     ];
   }
@@ -1542,8 +1544,17 @@ export function App() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       const verifier = sessionStorage.getItem('pkce_verifier');
+      const expectedState = sessionStorage.getItem('oauth_state');
 
-      if (code && verifier) {
+      if (code && verifier && expectedState) {
+        // state を突き合わせないと、他所から仕込まれた認可コードを掴まされる（CSRF）。
+        // 生成するだけで検証しないなら、そもそも付ける意味がない
+        if (params.get('state') !== expectedState) {
+          sessionStorage.removeItem('pkce_verifier');
+          sessionStorage.removeItem('oauth_state');
+          setError('ログインの検証に失敗しました。画面を読み込み直してください。');
+          return;
+        }
         try {
           setToken(
             await exchangeCodeForToken({
@@ -1555,6 +1566,7 @@ export function App() {
             }),
           );
           sessionStorage.removeItem('pkce_verifier');
+          sessionStorage.removeItem('oauth_state');
           window.history.replaceState({}, '', redirectUri);
         } catch (e) {
           setError((e as Error).message);
@@ -1563,13 +1575,15 @@ export function App() {
       }
 
       const pair = await createPkcePair();
+      const state = randomUrlSafe(16);
       sessionStorage.setItem('pkce_verifier', pair.verifier);
+      sessionStorage.setItem('oauth_state', state);
       window.location.href = buildAuthorizeUrl({
         domain: config.cognitoDomain,
         clientId: config.clientId,
         redirectUri,
         challenge: pair.challenge,
-        state: randomUrlSafe(16),
+        state,
       });
     })();
   }, []);

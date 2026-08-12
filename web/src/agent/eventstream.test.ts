@@ -1,32 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createFrameDecoder } from './eventstream.js';
-
-/** テスト用に 1 フレームを組み立てる。CRC は検証しないので 0 で埋める。 */
-function buildFrame(eventType: string, payload: string): Uint8Array {
-  const enc = new TextEncoder();
-  const name = ':event-type';
-  const nameBytes = enc.encode(name);
-  const valueBytes = enc.encode(eventType);
-  // [name len:1][name][type:1][value len:2][value]
-  const headersLen = 1 + nameBytes.length + 1 + 2 + valueBytes.length;
-  const payloadBytes = enc.encode(payload);
-  const total = 4 + 4 + 4 + headersLen + payloadBytes.length + 4;
-
-  const buf = new Uint8Array(total);
-  const view = new DataView(buf.buffer);
-  let o = 0;
-  view.setUint32(o, total); o += 4;
-  view.setUint32(o, headersLen); o += 4;
-  view.setUint32(o, 0); o += 4;           // prelude CRC（検証しない）
-  buf[o] = nameBytes.length; o += 1;
-  buf.set(nameBytes, o); o += nameBytes.length;
-  buf[o] = 7; o += 1;                      // type 7 = string
-  view.setUint16(o, valueBytes.length); o += 2;
-  buf.set(valueBytes, o); o += valueBytes.length;
-  buf.set(payloadBytes, o); o += payloadBytes.length;
-  view.setUint32(o, 0);                    // message CRC（検証しない）
-  return buf;
-}
+import { buildFrame } from './__fixtures__/frame.js';
 
 describe('createFrameDecoder', () => {
   it('1 フレームを復号する', () => {

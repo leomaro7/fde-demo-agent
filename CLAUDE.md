@@ -14,10 +14,21 @@
 
 ## 現状
 
-**実装は 1 行もない。** ここにあるのはルールと道具と、前身から引き継いだ知識だけ。
+**基盤は動く。通しで検証済み**（2026-08-12）。打ち合わせメモから URL までの手順は
+**[RUNBOOK.md](RUNBOOK.md)** にある。書きながら実行して作ったもので、
+未確認の箇所は明記してある。
 
-**要件書 7.0「そもそも何を自作するのか」は決着した**（2026-08-08）。
-設計は [docs/superpowers/specs/2026-08-08-what-to-build-design.md](docs/superpowers/specs/2026-08-08-what-to-build-design.md)。
+| | |
+|---|---|
+| `infra/` | 土台スタックと案件スタック（CDK） |
+| `web/` | 会話とトレースの画面、Harness クライアント、ツールループ、ログイン |
+| `demos/smoke/` | **土台の検証専用**の案件。商談用ではない |
+| `scripts/` | 設定の取り出し、Amplify への配信、Harness の実測 |
+
+**AWS には何も残っていない**（撤去まで検証したため）。作るには RUNBOOK の 2 章から。
+
+要件書 7.0 の決着と、そこから出た設計は
+[docs/superpowers/specs/2026-08-08-what-to-build-design.md](docs/superpowers/specs/2026-08-08-what-to-build-design.md)。
 
 - 案件リソースは**自前 CDK + `aws-cdk-lib` の `CfnHarness`（L1）**。
   `@aws/agentcore-cdk`（alpha）に依存しない。**L1 が守るのは名前と構造だけで、
@@ -25,7 +36,8 @@
 - ツールは**ブラウザ側**（`inline_function`）。**Code Interpreter だけ Harness 側**
 - 案件の設定は**自作スキーマ・TypeScript**
 
-**次は設計書 7 章の順序で作る。** 未確認が 5 件あり、うち 2 件は方針を覆しうる。
+**次は実案件を 1 件起こす。** 必ず `new-demo` から入ること。
+要件書 7.1（リポジトリと Cognito の分割単位）は**未決のまま**。
 
 ## 着手前に読むもの
 
