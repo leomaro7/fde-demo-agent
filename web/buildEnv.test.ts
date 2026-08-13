@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { parseEnvText, requireBuildEnv } from './buildEnv.js';
 
 describe('parseEnvText', () => {
@@ -45,5 +46,22 @@ describe('requireBuildEnv', () => {
   it('余計なキー（VITE_AWS_REGION など）が混ざっていても、必須キーだけを返す', () => {
     const polluted = { ...full, VITE_AWS_REGION: 'us-east-1', VITE_USER_POOL_ID: 'pool-1' };
     expect(requireBuildEnv(polluted)).toEqual(full);
+  });
+});
+
+describe('vite.config が必須キーを全部 define しているか', () => {
+  // 2026-08-13 に踏んだ。define に 3 つべた書きしてあり、REQUIRED_KEYS に
+  // VITE_DEMO_SLUG を足したのに書き忘れた。ビルドは通り、バンドルの grep でも
+  // 気づけず、**画面を開いて初めて**「設定が足りません」で止まった
+  const config = readFileSync(new URL('./vite.config.ts', import.meta.url), 'utf-8');
+
+  it('define を REQUIRED_KEYS から生成している（べた書きしていない）', () => {
+    expect(config).toContain('REQUIRED_KEYS.map');
+    // キー名をべた書きした define が残っていないこと
+    expect(config).not.toMatch(/'import\.meta\.env\.VITE_[A-Z_]+':/);
+  });
+
+  it('Vite の自動 env 取り込みを止めている（シェルの VITE_* を拾わないため）', () => {
+    expect(config).toContain('envPrefix');
   });
 });

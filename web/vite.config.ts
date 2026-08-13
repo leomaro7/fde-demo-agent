@@ -3,7 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { parseEnvText, requireBuildEnv } from './buildEnv.js';
+import { parseEnvText, requireBuildEnv, REQUIRED_KEYS } from './buildEnv.js';
 
 // ESM には __dirname が無い。import.meta.url から求める
 const here = dirname(fileURLToPath(import.meta.url));
@@ -57,9 +57,12 @@ export default defineConfig({
   // （実際に起きた事故）。envPrefix を実在しない接頭辞にして Vite 自身の自動注入を
   // 止め、下の define だけを唯一の入り口にする
   envPrefix: '__fde_demo_do_not_use_vite_auto_env__',
-  define: {
-    'import.meta.env.VITE_HARNESS_ARN': JSON.stringify(buildEnv.VITE_HARNESS_ARN),
-    'import.meta.env.VITE_COGNITO_DOMAIN': JSON.stringify(buildEnv.VITE_COGNITO_DOMAIN),
-    'import.meta.env.VITE_CLIENT_ID': JSON.stringify(buildEnv.VITE_CLIENT_ID),
-  },
+  //
+  // **べた書きしない。** REQUIRED_KEYS から作る。
+  // 2026-08-13 に、キーを 1 つ足したのに define に書き忘れて画面が
+  // 「設定が足りません」で止まった。バンドルの中身は grep で確かめたが
+  // 画面を開いていなかったので気づけなかった
+  define: Object.fromEntries(
+    REQUIRED_KEYS.map((k) => [`import.meta.env.${k}`, JSON.stringify(buildEnv[k])]),
+  ),
 });
