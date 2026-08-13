@@ -362,8 +362,8 @@ npx cdk destroy FdeDemo-<instance>-Foundation -c instance=<instance> --force
 
 | | 時間 |
 |---|---|
-| 案件（Harness を含む） | **64 秒 〜 10 分以上**。2 回の実測で 64 秒 / 125 秒、および 10 分でも終わらなかった回がある |
-| 土台（User Pool・Amplify・IAM） | 34〜35 秒（安定している） |
+| 案件（Harness を含む） | **64 秒 〜 10 分以上**。実測で 64 / 125 / 186 秒、および 10 分でも終わらなかった回がある |
+| 土台（User Pool・Amplify・IAM） | 30〜35 秒（安定している） |
 
 **Harness の削除時間が読めない。** 3 案件をまとめて消すつもりで待つと、
 10 分では終わらないことがある。**1 件ずつ流し、待てる時間を確保してから始めること。**
@@ -384,16 +384,32 @@ echo "UserPool: $(aws cognito-idp list-user-pools --max-results 60 --region $R -
 echo "Amplify : $(aws amplify list-apps --region $R --query 'length(apps)' --output text)"
 ```
 
-すべて撤去した直後はこうなる。
+**見るのは `FdeDemo-` で始まるスタックが残っていないことと、3 つの数が 0 であること。**
 
 ```
-CDKToolkit
 Harness : 0
 UserPool: 0
 Amplify : 0
 ```
 
-**`CDKToolkit` は bootstrap のスタックなので残ってよい。**
+**スタック一覧には無関係なものが並ぶ。** `CDKToolkit` は bootstrap のスタックで
+残ってよい。**共用アカウントでは他プロジェクトのスタックも出る**
+（2026-08-13 の実測では `AgentCore-TemporalDemo-default` と `llm-ab` が並んだ）。
+**`FdeDemo-` 以外は触らないこと。**
+
+`FdeDemo-` だけを見るならこう絞る。
+
+```bash
+aws cloudformation list-stacks --region $R \
+  --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE DELETE_IN_PROGRESS DELETE_FAILED \
+  --query 'StackSummaries[?starts_with(StackName, `FdeDemo-`)].{Name:StackName,Status:StackStatus}' \
+  --output table
+```
+
+**何も出なければ撤去できている。**
+
+**Harness / UserPool / Amplify の数も、他プロジェクトが使っていれば 0 にならない。**
+その場合は数ではなく名前で見る（`FdeDemo-<instance>` や `<instance>_<slug>`）。
 
 数が合わない、あるいは `DELETING` が残っている場合は `cleanup-check` スキルを使う。
 `DELETING` は待てば消えるが、**完了前に同名で作ると `ConflictException`** になる。
@@ -414,7 +430,7 @@ Amplify : 0
 | 3.3 デモユーザー | 実行。**2 周目**で `UsernameExistsException` が出ること、パスワード設定とグループ追加は何度でも通ることを確認 |
 | 4 フロントを配信 | 実行。ジョブが `SUCCEED` になるまで確認。ローカル開発も起動を確認 |
 | 5 動作を確認 | **実行。ブラウザで 3 問を通した**（2026-08-12 と 2026-08-13 の 2 回）。1・2 問目は根拠つきで回答、3 問目は拒否。**人が手で実施する必要がある**（自動操作は安定しない） |
-| 6 撤去 | 実行。**残骸ゼロを確認** |
+| 6 撤去 | **2026-08-13 の初回構築の通しでも実行**。案件 186 秒 / 土台 30 秒。`FdeDemo-*` の残骸ゼロを確認。**期待される出力の書き方が共用アカウントで通用しないことが分かり、直した** |
 
 **2026-08-13 に、何も無い状態から通した。** 1〜4 章はそのまま通り、
 所要時間の記述を実測に合わせて直した（土台 40→50 秒、案件 30→40 秒）。
@@ -432,4 +448,7 @@ Amplify : 0
 **ただしこれは人が手で通した。** ブラウザの自動操作は安定しないため、
 **5 章だけは人の手が要る**と考えておくこと。
 
-**1.6（企業リポジトリを作る）も未実行。** 理由は 1.6 に書いてある。
+**6 章（撤去）もこの通しで実行した。** 案件 186 秒・土台 30 秒。
+`FdeDemo-*` が残っていないことを確認している。
+
+**1.6（企業リポジトリを作る）だけが未実行。** 理由は 1.6 に書いてある。
