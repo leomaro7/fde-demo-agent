@@ -4,12 +4,14 @@
 **書きながら実行して作り、直すたびに通し直している。未確認の章は無い。**
 経緯となぜそう直したかは [docs/DECISIONS.md](docs/DECISIONS.md)。
 
-用語は 2 つだけ。
+先に用語を 4 つ。
 
 | | |
 |---|---|
 | **土台** | Cognito / Amplify アプリ / Harness 実行ロール。一度だけ作る |
 | **案件** | デモ 1 件ぶん。Harness / User Pool Client / グループ / Amplify ブランチ |
+| **Harness** | AgentCore の実体。指示文とモデルとツール宣言を持つ。**課金対象** |
+| **seed** | 案件のダミーデータ（`demos/<slug>/seed/`）。エージェントがツール経由で引く |
 
 ## 誰がやるか
 
@@ -33,13 +35,13 @@
 **流さないと先へ進めないコマンドには `必ず実行する。` と書いてある。**
 
 ```
-1.4 npm install                    依存を入れる
-2.2 gh repo create ...             企業リポジトリを作る（新しいクライアントのときだけ）
-3   npx cdk deploy ...Foundation   土台を作る
-4.3 npx cdk deploy ...<slug>       案件を作る
-5   npx tsx scripts/deploy-web.ts  フロントを配る
-6   npx tsx scripts/create-user.ts ログインする人を作る
-8   npx cdk destroy ...            消す（Harness は課金対象）
+1.4  npm install                      依存を入れる
+2.2  gh repo create / cd / npm install 企業リポジトリを作って移る（新しいクライアントのときだけ）
+3    npx cdk deploy ...Foundation     土台を作る
+4.3  npx cdk deploy ...<slug>         案件を作る
+5    npx tsx scripts/deploy-web.ts    フロントを配る
+6    npx tsx scripts/create-user.ts   ログインする人を作る
+8    npx cdk destroy ...              消す（Harness は課金対象）
 ```
 
 **目印の無いコマンドは 2 種類ある。**
@@ -47,7 +49,7 @@
 | | 例 | 飛ばすと |
 |---|---|---|
 | **確認するだけ** | `aws sts get-caller-identity` / `npx cdk list` | 何も起きない。**間違いに気づくのが後になるだけ** |
-| **当てはまるときだけ** | `npx cdk bootstrap` / `unset VITE_*` / `gh repo create` | **当てはまるのに飛ばすと落ちる。** bootstrap 未実施なら 3 章で止まる |
+| **章ごと飛ばせる** | 2 章と 4.4（企業リポジトリのときだけ）/ `npx cdk bootstrap`（未実施のときだけ）/ `unset VITE_*`（出たときだけ） | **当てはまるのに飛ばすと落ちる。** bootstrap 未実施なら 3 章で止まる。**章に入ったら中のコマンドは全部やる** |
 
 だから確認のコマンドは先に流すほうが速い。**40 秒かけてデプロイしてから気づかない。**
 
@@ -82,6 +84,17 @@ aws sts get-caller-identity --query '{Account:Account,Arn:Arn}' --output json
 ```
 
 アカウントと ARN が出れば通っている。出なければ `aws login` などで通す。
+
+**リージョンは `ap-northeast-1` 固定。** `aws` を叩くコマンドには毎回 `--region` が
+書いてあるが、**`npx cdk` は手元の既定リージョンを見る**。東京以外が既定なら、
+このシェルで指定してから進めること。
+
+```bash
+export AWS_REGION=ap-northeast-1
+```
+
+**複数アカウントを使い分けているなら `AWS_PROFILE` も先に通す。**
+`get-caller-identity` に出たアカウントが、作りたい先で合っているかを確かめること。
 
 ### 1.3 CDK の bootstrap
 
@@ -145,12 +158,23 @@ grep -n 'VITE_' ~/.zshrc
 > 勝手にやらせない。`gh repo create` は `.claude/settings.json` の `ask` に入れてある。
 
 **リポジトリはクライアント企業ごとに分ける**（要件書 7.1）。
-既にその企業のリポジトリがあるなら、この章は飛ばして 3 章へ。
+
+**今どちらにいるか先に確かめる。**
+
+```bash
+git remote -v
+```
+
+`fde-demo-agent` が出たら**土台リポジトリ**にいるので、この章をやる。
+`fde-demo-<企業>` が出たら既にその企業のリポジトリにいるので、**飛ばして 3 章へ。**
 
 **土台の修正を既存の企業リポジトリへ配る仕組みは無い。**
 その時点の土台からコピーして作る、という運用である。
 
 ### 2.1 土台リポジトリを template にする（初回だけ）
+
+`<土台リポジトリ>` はこの基盤のリポジトリのこと。**`owner/repo` の形で書く**
+（`git remote -v` に出る URL の末尾。この基盤なら `leomaro7/fde-demo-agent`）。
 
 **これをしていないと次のコマンドが失敗する。** まず今の状態を見る。
 
@@ -166,13 +190,22 @@ gh repo edit <土台リポジトリ> --template
 
 もう一度 `gh repo view` して `"isTemplate": true` になっていれば通っている。
 
-### 2.2 企業リポジトリを作る
+### 2.2 企業リポジトリを作って、そこへ移る
 
 **必ず実行する。**
 
 ```bash
 gh repo create fde-demo-<企業> --private --template <土台リポジトリ> --clone
+cd fde-demo-<企業>
+npm install
 ```
+
+**`cd` を忘れない。** 以降の 3〜8 章は**すべてこの企業リポジトリの中で実行する。**
+土台リポジトリのまま進めると、クライアント固有の情報を**公開リポジトリに置くことになる**
+（CLAUDE.md「置いた瞬間に公開事故になる」）。
+
+**`npm install` も忘れない。** テンプレートに `node_modules` は入らないので、
+これを飛ばすと 3 章の `npx cdk deploy` が落ちる。
 
 **`--private` を必ず付ける。** 案件ごとにクライアント固有の情報が入る。
 `gh repo view fde-demo-<企業> --json visibility` で `PRIVATE` を確かめること。
@@ -192,51 +225,6 @@ gh repo create fde-demo-<企業> --private --template <土台リポジトリ> --
 **`gh` のトークンに `delete_repo` スコープが無いと、作ったリポジトリを `gh` からは消せない。**
 試しに作る場合は、画面から消すか `gh auth refresh -s delete_repo` を通しておくこと。
 
-### 2.3 見本の案件を消す
-
-**消すのは自分の案件を作った後**（4 章の後）。先に消すと、`tsconfig.json` の
-`#demo` が指す先が無くなり、**`npx tsc` が通らなくなる**。
-
-```bash
-rm -rf demos/smoke demos/sales demos/hr
-```
-
-続けて 2 か所を直す。
-
-| 直す場所 | 何を |
-|---|---|
-| `demos/index.ts` | 見本 3 件の import 6 行と、登録表の 3 行を消す |
-| `tsconfig.json` | `#demo` と `#demo-tools` を**自分の案件**に向ける |
-
-```jsonc
-"paths": {
-  "#demo": ["demos/<slug>/demo.ts"],
-  "#demo-tools": ["demos/<slug>/tools.ts"]
-}
-```
-
-確かめる。
-
-```bash
-npm install
-npx tsc --noEmit
-npx vitest run
-npx cdk list -c instance=<instance>
-```
-
-`cdk list` に**自分の案件だけ**が出れば消せている。
-
-```
-FdeDemo-<instance>-Foundation
-FdeDemo-<instance>-<slug>
-```
-
-`demos/smoke` `demos/sales` `demos/hr` は**土台リポジトリに残す見本**であり、
-企業リポジトリには要らない。型ごとの書き方を参照したいときは土台リポジトリを見る
-（要件書 4.3「近い既存案件を見本として参照する。テンプレート化しない」）。
-
-**`docs/sample-meeting-note.md` も消してよい**（`new-demo` を試すための架空メモ）。
-
 ---
 
 ## 3. 土台を構築する
@@ -253,6 +241,10 @@ FdeDemo-<instance>-<slug>
 `fdedemo0809` のように固有性のある短い語にする。
 英数字のみ・先頭は文字（`<instance>_<slug>` が 40 文字以内になること）。
 
+**取られていた場合は、デプロイの途中で Cognito ドメインの作成が失敗する。**
+`instance` を変えて作り直す（スタック名も変わるので、失敗したスタックは消しておく）。
+**どのエラーが出るかは未確認**（衝突させて確かめていない）。
+
 **必ず実行する。**
 
 ```bash
@@ -267,6 +259,9 @@ npx cdk deploy FdeDemo-<instance>-Foundation -c instance=<instance> --require-ap
 ```
 AmplifyAppId / DiscoveryUrl / ExecutionRoleArn / HostedUiDomain / UserPoolId
 ```
+
+**`instance` と、次の章で決まる `slug` は 4〜8 章のほぼ全部で使う。** 控えておくこと。
+スタックの出力のほうは控えなくてよい（スクリプトが引く）。
 
 **`instance` を省くと synth で落ちる。** 意図的にそうしてある。
 
@@ -286,6 +281,9 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 **止まるのは 2 か所だけ。** 答えてはいけないことを聞くときと、骨子の承認を取るとき。
 そこから先は 4.2 の確認と `demo-quality` のレビュー反映まで通しでやり、
 **4.3 の手前で止まる**（デプロイは課金が発生するので、そこで一度承認を取る）。
+
+**`slug` はスキルが決める。** 承認を取るときに提示されるが、後から確かめるなら
+`ls demos` で分かる（自分が作ったディレクトリ名がそれ）。**4.3 以降でずっと使う。**
 
 以下は**中身の説明と、手で作る場合の手順**。スキルに任せるなら読まなくてよい。
 
@@ -371,12 +369,69 @@ npx cdk deploy FdeDemo-<instance>-<slug> -c instance=<instance> --require-approv
 
 初回は 40 秒ほど（実測 40.2 / 40.5 秒）。2 周目は変更がなければ数秒。
 
+**`DemoUrl` はまだ開いても中身が無い。** フロントを配るのは 5 章。
+
 出力の `DemoUrl` がクライアントに渡す URL、`ClientId` と `HarnessArn` は
 フロントのビルドに使う（後述のスクリプトが引く）。
 
 **`demo.ts` の指示文（`systemPrompt`）は Harness に焼かれる。**
 変更したらこのコマンドを流し直すこと。**フロントを配り直すだけでは効かない。**
 `seed` と `tools.ts` はフロント側なので、そちらは 5 章（フロントを配信する）だけでよい。
+
+### 4.4 見本の案件を消す（企業リポジトリのときだけ）
+
+**土台リポジトリでは消さない。** 見本は土台に残すもの（要件書 4.3）。
+
+自分の案件ができた今が消すタイミング。**先に消すと `tsconfig.json` の `#demo` が
+指す先が無くなり、`npx tsc` が通らなくなる。**
+
+まず何があるか見る。**見本は増えていることがある。**
+
+```bash
+ls demos
+```
+
+**自分の案件以外**を消す。
+
+```bash
+rm -rf demos/smoke demos/sales demos/hr
+```
+
+続けて 2 か所を直す。
+
+| 直す場所 | 何を |
+|---|---|
+| `demos/index.ts` | 消した見本の import と登録行を消す（**1 件につき 3 行**） |
+| `tsconfig.json` | `#demo` と `#demo-tools` を**自分の案件**に向ける |
+
+```jsonc
+"paths": {
+  "#demo": ["demos/<slug>/demo.ts"],
+  "#demo-tools": ["demos/<slug>/tools.ts"]
+}
+```
+
+確かめる。
+
+```bash
+npx tsc --noEmit
+npm test
+npx cdk list -c instance=<instance>
+```
+
+`cdk list` に**自分の案件だけ**が出れば消せている。
+
+```
+FdeDemo-<instance>-Foundation
+FdeDemo-<instance>-<slug>
+```
+
+型ごとの書き方を参照したいときは土台リポジトリを見る
+（要件書 4.3「近い既存案件を見本として参照する。テンプレート化しない」）。
+
+**`docs/sample-meeting-note.md` も消してよい**（`new-demo` を試すための架空メモ）。
+
+---
 
 ## 5. フロントを配信する
 
@@ -399,8 +454,14 @@ Instance '<instance>' の Slug '<slug>' で web/.env.local を上書きします
 
 反映の完了を確認する。
 
+`<AmplifyAppId>` は土台スタックから引く（控えていなくてよい）。
+
 ```bash
-aws amplify list-jobs --region ap-northeast-1 --app-id <AmplifyAppId> \
+APP=$(aws cloudformation describe-stacks --region ap-northeast-1 \
+  --stack-name FdeDemo-<instance>-Foundation \
+  --query 'Stacks[0].Outputs[?OutputKey==`AmplifyAppId`].OutputValue' --output text)
+
+aws amplify list-jobs --region ap-northeast-1 --app-id "$APP" \
   --branch-name <slug> --max-results 1 \
   --query 'jobSummaries[0].{jobId:jobId,status:status}' --output json
 ```
@@ -527,9 +588,13 @@ npx tsx scripts/create-user.ts <instance> <slug> --generate-password
 
 | | 期待 |
 |---|---|
-| 1・2 問目 | **答える。** 項番（`【A-001】` など）と条番号が付いている |
-| **3 問目** | **答えを拒む。** 「規程には定めがないため、〜への確認が必要です」と、確認すべき事項を箇条書きで示す |
-| 右のトレース | 押すたびに `search（ブラウザ が実行）` と検索語が積まれる |
+| 1・2 問目 | **答える。** そのうえで**根拠の番号**（`【A-001】` `【M-2024-0137】` など、案件で決めた形）が本文に出ている |
+| **3 問目** | **答えを拒む。** 断ったうえで**宛先**（どの部署に何を確認するか）まで書いてある |
+| 右のトレース | 押すたびに `search（ブラウザ が実行）` と検索語が積まれる。**同じ語を変えて 3 回以上検索していたら、「探すのをやめる条件」が効いていない** |
+
+**期待する文面は案件ごとに違う。** 何が出れば合格かは `demos/<slug>/demo.ts` の
+指示文に書いてある（`new-demo` が決めている）。**上の表は形の話**であって、
+文言そのものではない。
 
 **3 問目が肝。** ここで無理に答えを作るなら、そのデモは商談に出せない。
 運用部門が最も警戒するのが「何でも答える AI」であるため。
