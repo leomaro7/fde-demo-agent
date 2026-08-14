@@ -192,15 +192,43 @@ function promptPassword(label: string): Promise<string> {
   });
 }
 
-async function main(): Promise<void> {
-  const argv = process.argv.slice(2);
+export interface Options {
+  readonly instance: string;
+  readonly slug: string;
+  readonly username: string;
+  readonly generate: boolean;
+}
+
+export const USAGE =
+  '使い方: npx tsx scripts/create-user.ts <instance> <slug> [ユーザー名] [--generate-password]';
+
+/**
+ * 引数を読む。
+ *
+ * **ユーザー名は案件ごとに変える。** クライアントのログイン画面に出るので、
+ * `demo@example.com` のままだと当社の都合が見えてしまう案件がある。
+ * 省いたときだけ既定値にする。
+ *
+ * 旗と位置引数を混ぜてよい（`... <slug> <ユーザー名> --generate-password` でも
+ * `... <slug> --generate-password` でも通る）。順序を覚えさせない。
+ */
+export function parseArgs(argv: readonly string[]): Options {
   const generate = argv.includes('--generate-password');
-  const [instance, slug, username = DEFAULT_USERNAME] = argv.filter((a) => !a.startsWith('--'));
-  if (!instance || !slug) {
-    throw new Error(
-      '使い方: npx tsx scripts/create-user.ts <instance> <slug> [ユーザー名] [--generate-password]',
-    );
+  const rest = argv.filter((a) => !a.startsWith('--'));
+  const unknown = argv.filter((a) => a.startsWith('--') && a !== '--generate-password');
+  if (unknown.length > 0) {
+    throw new Error(`知らない指定です: ${unknown.join(' ')}\n${USAGE}`);
   }
+  const [instance, slug, username = DEFAULT_USERNAME] = rest;
+  if (!instance || !slug) throw new Error(USAGE);
+  if (rest.length > 3) {
+    throw new Error(`引数が多すぎます: ${rest.slice(3).join(' ')}\n${USAGE}`);
+  }
+  return { instance, slug, username, generate };
+}
+
+async function main(): Promise<void> {
+  const { instance, slug, username, generate } = parseArgs(process.argv.slice(2));
 
   const poolId = userPoolId(instance);
   console.log(`User Pool: ${poolId}`);

@@ -383,7 +383,7 @@ npm run dev
 **必ず実行する。**
 
 ```bash
-npx tsx scripts/create-user.ts <instance> <slug>
+npx tsx scripts/create-user.ts <instance> <slug> [ユーザー名]
 ```
 
 パスワードを聞かれる。**入力は表示されない。**
@@ -396,6 +396,19 @@ User Pool: ap-northeast-1_XXXXXXXXX
 パスワードを設定しました（CONFIRMED）。
 グループ <slug> に入れました。
 ```
+
+**ユーザー名は案件ごとに変えられる。** 省くと `demo@example.com` になる。
+
+```bash
+npx tsx scripts/create-user.ts <instance> <slug> hozen@<クライアントのドメイン>
+```
+
+**これはクライアントのログイン画面に出る。** 業務に近い名前にしておくと、
+その場で「自分たちのもの」として見てもらえる。逆に `demo@example.com` のままだと
+当社の都合が見えるので、商談で見せる案件では変えること。
+
+**メールアドレスの形にする。** User Pool が email をログイン ID にしているため
+（`signInAliases: { email: true }`）。実在しなくてよい（招待メールは送らない）。
 
 > **この対話入力だけ未確認。** 端末が要るため、エージェントからは実行できていない
 > （Claude Code の `!` も端末にはならない）。パスワード入力以降の 3 つの API 呼び出しは
@@ -439,6 +452,8 @@ npx tsx scripts/create-user.ts <instance> <slug> --generate-password
 | `Group not found.` | 案件スタックが無い（3.2）。**画面から消した場合もこうなる** |
 | `ResourceNotFoundException`（User Pool） | 土台スタックが無い（2 章） |
 | `InvalidPasswordException` | 規則を満たしていない。8 文字以上・大小英数字・記号 |
+| `知らない指定です: --generate-passwd` | 旗の打ち間違い。**黙って無視せず止める**（対話入力待ちで固まる方が分かりにくい）|
+| `引数が多すぎます` | slug とユーザー名を取り違えている可能性がある |
 
 **グループに入れ忘れると、ログインはできるが会話で弾かれる。**
 そのとき Harness は **HTTP 403 ではなく 500** を返す（画面には
@@ -458,7 +473,7 @@ npx tsx scripts/create-user.ts <instance> <slug> --generate-password
 ことがある（実際にあった。`docs/DECISIONS.md` 2026-08-12）。
 
 1. `DemoUrl` をブラウザで開く
-2. Cognito のログイン画面に飛ぶ。`demo@example.com` と 5 章で決めたパスワードで入る
+2. Cognito のログイン画面に飛ぶ。**5 章で作ったユーザー名**とパスワードで入る
 3. 入力欄の上に並ぶ**例示の 3 問を左から順に押す**
 
 見るのは 3 点。
@@ -634,6 +649,10 @@ aws cloudformation list-stacks --region $R \
 
 **ただし対話入力の経路だけ実行していない。** 端末が要るため、エージェントからは
 流せない（`--generate-password` を足したのはこれが理由）。5 章にその旨を明記してある。
+
+**ユーザー名を案件ごとに変えられることも、同じ環境で通した**（`hozen@sample-foods.example.com`
+で作成し、`email` 属性・`CONFIRMED`・グループ付与を確認）。**引数は前からあったが、
+手順書に書いていなかった。** あるのに書かれていない機能は無いのと同じなので追記した。
 
 **`maint` はリポジトリから消した**（コミット `d6eff56` に残っている）。
 広げた `new-demo` を**別のセッションで通しで試すため**。既にあると経路を通せない。

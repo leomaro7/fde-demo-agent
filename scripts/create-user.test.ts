@@ -6,6 +6,7 @@ import {
   isAlreadyExists,
   hintFor,
   generatePassword,
+  parseArgs,
   DEFAULT_USERNAME,
 } from './create-user.js';
 
@@ -52,6 +53,55 @@ describe('isAlreadyExists', () => {
 
   it('別のエラーは続行しない', () => {
     expect(isAlreadyExists('An error occurred (ResourceNotFoundException)')).toBe(false);
+  });
+});
+
+describe('parseArgs', () => {
+  it('ユーザー名を案件ごとに変えられる', () => {
+    // クライアントのログイン画面に出る。demo@example.com のままだと
+    // 当社の都合が見えてしまう案件がある
+    const o = parseArgs(['cen', 'maint', 'hozen@sample-foods.example.com']);
+    expect(o.username).toBe('hozen@sample-foods.example.com');
+    expect(o.instance).toBe('cen');
+    expect(o.slug).toBe('maint');
+  });
+
+  it('省いたら既定値', () => {
+    expect(parseArgs(['cen', 'maint']).username).toBe(DEFAULT_USERNAME);
+  });
+
+  it('旗と位置引数を混ぜてよい', () => {
+    // 順序を覚えさせない。どちらで打っても同じ結果になる
+    for (const argv of [
+      ['cen', 'maint', 'a@b.example.com', '--generate-password'],
+      ['cen', 'maint', '--generate-password', 'a@b.example.com'],
+      ['--generate-password', 'cen', 'maint', 'a@b.example.com'],
+    ]) {
+      const o = parseArgs(argv);
+      expect(o.generate).toBe(true);
+      expect(o.username).toBe('a@b.example.com');
+    }
+  });
+
+  it('ユーザー名なしで旗だけでも通る', () => {
+    const o = parseArgs(['cen', 'maint', '--generate-password']);
+    expect(o.generate).toBe(true);
+    expect(o.username).toBe(DEFAULT_USERNAME);
+  });
+
+  it('足りなければ使い方を出す', () => {
+    expect(() => parseArgs([])).toThrow('使い方');
+    expect(() => parseArgs(['cen'])).toThrow('使い方');
+  });
+
+  it('打ち間違えた旗を黙って無視しない', () => {
+    // --generate-passwd を無視すると、対話入力待ちで止まった理由が分からない
+    expect(() => parseArgs(['cen', 'maint', '--generate-passwd'])).toThrow('知らない指定');
+  });
+
+  it('引数が多すぎるときは知らせる', () => {
+    // slug とユーザー名を取り違えたまま通すと、別のグループに入る
+    expect(() => parseArgs(['cen', 'maint', 'a@b.example.com', 'extra'])).toThrow('多すぎます');
   });
 });
 
