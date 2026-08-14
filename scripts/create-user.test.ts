@@ -146,7 +146,7 @@ describe('hintFor', () => {
     const hint = hintFor(
       'An error occurred (ResourceNotFoundException) when calling the AdminAddUserToGroup operation: Group not found.',
     );
-    expect(hint).toContain('3.2');
+    expect(hint).toContain('4.3');
     // 2026-08-14 に、画面から消されていたのが原因だった
     expect(hint).toContain('画面から消した');
   });

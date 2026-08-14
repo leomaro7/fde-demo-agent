@@ -117,11 +117,11 @@ export function hintFor(message: string): string | undefined {
     return 'パスワードは 8 文字以上で、大文字・小文字・数字・記号を含めること。';
   }
   if (message.includes('ResourceNotFoundException') && message.includes('Group')) {
-    return 'グループがありません。案件スタックをデプロイしたか確認すること（RUNBOOK 3.2）。'
+    return 'グループがありません。案件スタックをデプロイしたか確認すること（RUNBOOK 4.3）。'
       + '画面から消した場合もこうなる。';
   }
   if (message.includes('ResourceNotFoundException')) {
-    return 'User Pool がありません。土台スタックを確認すること（RUNBOOK 2）。';
+    return 'User Pool がありません。土台スタックを確認すること（RUNBOOK 3 章）。';
   }
   return undefined;
 }
