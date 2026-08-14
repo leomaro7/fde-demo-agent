@@ -191,7 +191,6 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 
 **手元にメモが無い（試すだけ）なら** [docs/sample-meeting-note.md](docs/sample-meeting-note.md)
 を使う。架空の打ち合わせメモで、**わざと「答えてはいけないこと」を書いていない**。
-これで作ったのが `demos/maint/`。
 
 | ファイル | 中身 |
 |---|---|
@@ -242,14 +241,14 @@ npx cdk list -c instance=<instance>
 | `npm test` | **失敗が 0 件**なら OK。件数は増えるので数えない |
 | `cdk list` | 一覧に `FdeDemo-<instance>-<slug>` が出れば、登録表が CDK 側に効いている |
 
-`cdk list` の出力はこうなる（見本 4 件がある状態）。
+`cdk list` の出力はこうなる（見本 3 件 + 追加した案件）。
 
 ```
 FdeDemo-<instance>-Foundation
 FdeDemo-<instance>-smoke
 FdeDemo-<instance>-sales
 FdeDemo-<instance>-hr
-FdeDemo-<instance>-maint
+FdeDemo-<instance>-<slug>
 ```
 
 **`-c instance=` を忘れると、次で止まる。** 異常ではない。
@@ -522,7 +521,9 @@ aws cloudformation list-stacks --region $R \
 **同日中に見せるという目的に対して、人がやる範囲が多すぎた。**
 いまはメモから 3.1.1 の確認と `demo-quality` の反映まで通しでやり、3.2 の手前で止まる。
 
-**`maint` は AWS にデプロイしていない。** 3.2 以降は通していない。
+**`maint` はリポジトリから消した**（コミット `d6eff56` に残っている）。
+広げた `new-demo` を**別のセッションで通しで試すため**。既にあると経路を通せない。
+AWS にはデプロイしていないので、消したのはファイルだけ。3.2 以降は通していない。
 
 **6 章（撤去）もこの通しで実行した。** 案件 186 秒・土台 30 秒。
 `FdeDemo-*` が残っていないことを確認している。

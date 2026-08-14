@@ -7,8 +7,6 @@ import { demo as salesDemo } from './sales/demo.js';
 import { tools as salesTools } from './sales/tools.js';
 import { demo as hrDemo } from './hr/demo.js';
 import { tools as hrTools } from './hr/tools.js';
-import { demo as maintDemo } from './maint/demo.js';
-import { tools as maintTools } from './maint/tools.js';
 
 export interface DemoEntry {
   readonly demo: DemoConfig;
@@ -25,15 +23,17 @@ export interface DemoEntry {
  * `infra/bin/app.ts`（CDK 側）もここを使うので、両側の食い違いも起きない。
  */
 /**
- * **この 4 件は土台リポジトリに置く見本であり、商談用の案件ではない。**
+ * **この 3 件は土台リポジトリに置く見本であり、商談用の案件ではない。**
  *
- * 型ごとに 1 件ずつある（要件書 3.3）。
  * - smoke: 土台の検証用。最小構成
  * - sales: データ分析型。Code Interpreter、傾向の仕込み方
  * - hr:    ナレッジ判断型。ツール 2 つ、escalated による拒否
- * - maint: 検索・照合型。ツール 1 つ、qualityHold による拒否
  *
- * **企業リポジトリを作ったら、この 4 件は消す**（RUNBOOK 1.6）。
+ * **検索・照合型の見本は無い。** 一度作ったが（コミット d6eff56）、
+ * `new-demo` を通しで試すために消した。作り直すなら
+ * `docs/sample-meeting-note.md` から起こせる。
+ *
+ * **企業リポジトリを作ったら、この 3 件は消す**（RUNBOOK 1.6）。
  * 書き方を参照したいときは土台リポジトリを見る。テンプレート化はしない
  * （要件書 4.3）。
  */
@@ -41,7 +41,6 @@ export const demos: Record<string, DemoEntry> = {
   smoke: { demo: smokeDemo, tools: smokeTools },
   sales: { demo: salesDemo, tools: salesTools },
   hr: { demo: hrDemo, tools: hrTools },
-  maint: { demo: maintDemo, tools: maintTools },
 };
 
 /** slug で案件を引く。知らない slug なら、選べるものを挙げて投げる。 */
