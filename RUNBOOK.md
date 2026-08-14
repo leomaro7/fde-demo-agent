@@ -28,6 +28,28 @@
 **課金が発生する章（2 / 3.2 / 4）はエージェントでも流せる。**
 ただし作る前に承認を取ること。
 
+## コマンドの読み方
+
+**流さないと先へ進めないコマンドには `必ず実行する。` と書いてある。** 全部で 6 つ。
+
+```
+1.4 npm install                    依存を入れる
+2   npx cdk deploy ...Foundation   土台を作る
+3.2 npx cdk deploy ...<slug>       案件を作る
+4   npx tsx scripts/deploy-web.ts  フロントを配る
+5   npx tsx scripts/create-user.ts ログインする人を作る
+7   npx cdk destroy ...            消す（Harness は課金対象）
+```
+
+**目印の無いコマンドは 2 種類ある。**
+
+| | 例 | 飛ばすと |
+|---|---|---|
+| **確認するだけ** | `aws sts get-caller-identity` / `npx cdk list` | 何も起きない。**間違いに気づくのが後になるだけ** |
+| **当てはまるときだけ** | `npx cdk bootstrap` / `unset VITE_*` / `gh repo create` | **当てはまるのに飛ばすと落ちる。** bootstrap 未実施なら 2 章で止まる |
+
+だから確認のコマンドは先に流すほうが速い。**40 秒かけてデプロイしてから気づかない。**
+
 ---
 
 ## 1. 前提
@@ -77,6 +99,8 @@ npx cdk bootstrap aws://<アカウントID>/ap-northeast-1
 ```
 
 ### 1.4 依存を入れる
+
+**必ず実行する。**
 
 ```bash
 npm install
@@ -177,6 +201,8 @@ npx vitest run   # 見本を消したことで落ちるテストがあれば、�
 **`demo` や `test` のような一般的な語は他社に取られている。**
 `fdedemo0809` のように固有性のある短い語にする。
 英数字のみ・先頭は文字（`<instance>_<slug>` が 40 文字以内になること）。
+
+**必ず実行する。**
 
 ```bash
 npx cdk deploy FdeDemo-<instance>-Foundation -c instance=<instance> --require-approval never
@@ -286,6 +312,8 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 
 ### 3.2 案件スタックをデプロイする
 
+**必ず実行する。**
+
 ```bash
 npx cdk deploy FdeDemo-<instance>-<slug> -c instance=<instance> --require-approval never
 ```
@@ -300,6 +328,8 @@ npx cdk deploy FdeDemo-<instance>-<slug> -c instance=<instance> --require-approv
 `seed` と `tools.ts` はフロント側なので、そちらは 4 章（フロントを配信する）だけでよい。
 
 ## 4. フロントを配信する
+
+**必ず実行する。**
 
 ```bash
 npx tsx scripts/deploy-web.ts <instance> <slug>
@@ -349,6 +379,8 @@ npm run dev
 パスワードを設定する手段が無いため（`docs/DECISIONS.md` 2026-08-08）。
 
 **使う直前に作る。** パスワードは次の章ですぐ使う。
+
+**必ず実行する。**
 
 ```bash
 npx tsx scripts/create-user.ts <instance> <slug>
@@ -458,6 +490,8 @@ npx tsx scripts/create-user.ts <instance> <slug> --generate-password
 
 **案件 → 土台の順に消す。** 逆順はできない（案件が土台の値を `ImportValue` で
 参照しているため、案件が残っていると土台の削除が拒否される）。
+
+**必ず実行する。**
 
 ```bash
 npx cdk destroy FdeDemo-<instance>-<slug> -c instance=<instance> --force
