@@ -2,7 +2,27 @@ import { describe, it, expect } from 'vitest';
 import { App } from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import { DemoStack } from './demo-stack.js';
-import { demo } from '../../demos/smoke/demo.js';
+import type { DemoConfig } from './demo-config.js';
+
+/**
+ * 検査用の案件。**見本の案件を import しない。**
+ *
+ * 企業リポジトリでは見本を消す（RUNBOOK 1.6）。見本に依存していると、
+ * 消した瞬間にこのテストが読み込めなくなり、**土台の検査ごと落ちる**。
+ * 実際に落ちた（2026-08-14）。ここで見たいのは DemoStack の形であって、
+ * どの案件を渡したかではない。
+ */
+const demo: DemoConfig = {
+  slug: 'smoke',
+  clientName: '検査用',
+  brand: { primary: '#000000' },
+  harness: {
+    modelId: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    systemPrompt: '検査用',
+    tools: [],
+  },
+  examples: ['1', '2', '3'],
+};
 
 function synth() {
   const app = new App();

@@ -30,16 +30,20 @@ describe('demos', () => {
 });
 
 describe('pickDemo', () => {
-  it('slug で案件を引ける', () => {
-    expect(pickDemo('smoke').demo.slug).toBe('smoke');
-    expect(pickDemo('sales').demo.slug).toBe('sales');
-    expect(pickDemo('hr').demo.slug).toBe('hr');
+  // 案件名を書かない。企業リポジトリでは見本を消すので（RUNBOOK 1.6）、
+  // 書くと消した瞬間に落ちる。実際に落ちた（2026-08-14）
+  it('登録されている案件は slug で引ける', () => {
+    for (const slug of Object.keys(demos)) {
+      expect(pickDemo(slug).demo.slug).toBe(slug);
+    }
   });
 
   it('知らない slug なら、選べるものを挙げて投げる', () => {
     // 黙って別の案件を出すのが最悪。クライアントに他社のデモを見せることになる
     expect(() => pickDemo('nosuch')).toThrow(/nosuch/);
-    expect(() => pickDemo('nosuch')).toThrow(/smoke/);
+    for (const slug of Object.keys(demos)) {
+      expect(() => pickDemo('nosuch')).toThrow(new RegExp(slug));
+    }
   });
 });
 
