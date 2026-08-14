@@ -181,6 +181,10 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 `demos/<slug>/` に 3 点を置く。**骨子は `new-demo` スキルから起こすこと**
 （打ち合わせメモに絶対に書かれない「答えてはいけないこと」を聞き出す手順が入っている）。
 
+**手元にメモが無い（試すだけ）なら** [docs/sample-meeting-note.md](docs/sample-meeting-note.md)
+を使う。架空の打ち合わせメモで、**わざと「答えてはいけないこと」を書いていない**。
+これで作ったのが `demos/maint/`。
+
 | ファイル | 中身 |
 |---|---|
 | `demo.ts` | 指示文・ツール宣言・見せる 3 問・色 |
