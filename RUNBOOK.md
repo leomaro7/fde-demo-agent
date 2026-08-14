@@ -178,8 +178,13 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 
 ### 3.1 案件を用意する
 
-`demos/<slug>/` に 3 点を置く。**骨子は `new-demo` スキルから起こすこと**
+**まず `new-demo` スキルを通す**
 （打ち合わせメモに絶対に書かれない「答えてはいけないこと」を聞き出す手順が入っている）。
+
+**このスキルはファイルを作らない。** 決めるのは中身だけで、型・拒む条件・seed に仕込むもの・
+見せる 3 問を決めて、承認を 1 回取ったところで終わる。**ここから先の作成はこの章の作業。**
+
+`demos/<slug>/` に 3 点を置く。
 
 **手元にメモが無い（試すだけ）なら** [docs/sample-meeting-note.md](docs/sample-meeting-note.md)
 を使う。架空の打ち合わせメモで、**わざと「答えてはいけないこと」を書いていない**。
@@ -191,12 +196,19 @@ Error: instance が指定されていません。`cdk deploy -c instance=<name>`
 | `seed/*.json` | ダミーデータ |
 | `tools.ts` | 検索処理と、名前 → 関数の登録表 |
 
-**`demos/index.ts` の登録表に 1 行足す。これだけでよい。**
+**`tools.ts` はテストを書く**（`demos/<slug>/tools.test.ts`）。純粋関数なので TDD の対象。
+既存の案件のテストをそのまま真似てよい。**見せる 3 問が seed から本当に引けるかを、
+ここで確かめる。** 引けないまま商談に出すのが最悪で、実際に踏んだ（`new-demo` スキル）。
+
+**`demos/index.ts` に 3 行足す。** import 2 行と、登録表の 1 行。
 
 ```ts
+import { demo as <slug>Demo } from './<slug>/demo.js';      // ← 足す
+import { tools as <slug>Tools } from './<slug>/tools.js';   // ← 足す
+
 export const demos: Record<string, DemoEntry> = {
   smoke: { demo: smokeDemo, tools: smokeTools },
-  <slug>: { demo: <slug>Demo, tools: <slug>Tools },   // ← 足す
+  <slug>: { demo: <slug>Demo, tools: <slug>Tools },         // ← 足す
 };
 ```
 
@@ -210,6 +222,40 @@ CDK（`infra/bin/app.ts`）も画面（`web/src/ui/App.tsx`）も、どちらも
 （ハイフンは `_` に変換される）。超えると synth で落ちる。
 
 **既にある案件（見本など）をそのまま使うなら、3.1 は飛ばして 3.2 へ。**
+
+### 3.1.1 デプロイする前に確認する
+
+**デプロイは 40 秒かかる。手元で分かる誤りをそこで見つけない。**
+
+```bash
+npx tsc --noEmit
+npm test
+npx cdk list -c instance=<instance>
+```
+
+| | 見るところ |
+|---|---|
+| `tsc --noEmit` | 何も出なければ通っている |
+| `npm test` | **失敗が 0 件**なら OK。件数は増えるので数えない |
+| `cdk list` | 一覧に `FdeDemo-<instance>-<slug>` が出れば、登録表が CDK 側に効いている |
+
+`cdk list` の出力はこうなる（見本 4 件がある状態）。
+
+```
+FdeDemo-<instance>-Foundation
+FdeDemo-<instance>-smoke
+FdeDemo-<instance>-sales
+FdeDemo-<instance>-hr
+FdeDemo-<instance>-maint
+```
+
+**`-c instance=` を忘れると、次で止まる。** 異常ではない。
+
+```
+Error: instance が指定されていません。`cdk deploy -c instance=<name>` で渡してください。
+```
+
+**`slug` が 40 文字の制限に触れる場合も、ここで落ちる**（`<instance>_<slug>` が上限）。
 
 ### 3.2 案件スタックをデプロイする
 
@@ -430,7 +476,9 @@ aws cloudformation list-stacks --region $R \
 | **初回構築からの通し** | **2026-08-13 に実行**（何も無い状態から `instance=fdeverify0813` で構築）。**1〜5 章が通った**（5 章は人が手で実施） |
 | 1.6 企業リポジトリを作る | **未実行。** 土台リポジトリが GitHub 上に無く、`gh repo create` は deny に入れてある。フラグの存在のみ確認 |
 | 2 土台を構築 | 実行。**2 周目**（既にある状態）で 3 秒・出力再表示を確認 |
-| 3.1〜3.2 案件を追加 | 実行。**2 周目**で 4 秒 |
+| 3.1 案件を用意 | 実行。**2026-08-14 に `maint` を新規で起こし、書き足りない箇所を直した**（下記） |
+| 3.1.1 デプロイ前の確認 | 実行（`tsc` / `npm test` / `cdk list`）。**2026-08-14 に追加した章** |
+| 3.2 案件スタックをデプロイ | 実行。**2 周目**で 4 秒 |
 | 3.3 デモユーザー | 実行。**2 周目**で `UsernameExistsException` が出ること、パスワード設定とグループ追加は何度でも通ることを確認 |
 | 4 フロントを配信 | 実行。ジョブが `SUCCEED` になるまで確認。ローカル開発も起動を確認 |
 | 5 動作を確認 | **実行。ブラウザで 3 問を通した**（2026-08-12 と 2026-08-13 の 2 回）。1・2 問目は根拠つきで回答、3 問目は拒否。**人が手で実施する必要がある**（自動操作は安定しない） |
@@ -451,6 +499,22 @@ aws cloudformation list-stacks --region $R \
 
 **ただしこれは人が手で通した。** ブラウザの自動操作は安定しないため、
 **5 章だけは人の手が要る**と考えておくこと。
+
+### 2026-08-14: 3.1 を新しい案件で通して、3 箇所を直した
+
+`docs/sample-meeting-note.md` から `demos/maint/` を起こした。**3.1 の欠陥が 3 つ出た。**
+
+| 何が起きたか | どう直したか |
+|---|---|
+| `new-demo` がどこまでやるのか書いておらず、**スキルがファイルを作ると読めた** | 「このスキルはファイルを作らない」と明記 |
+| 「登録表に **1 行**足す。これだけでよい」と書いてあったが、**実際は import 2 行を含む 3 行** | 3 行に直した。設計書の「クライアント固有は登録表の 1 行だけ」（＝情報がどこに閉じているかの話）を、編集行数の話と取り違えていた |
+| **デプロイ前に何を確認するかが書かれていない。** 実際には `tsc` / `npm test` / `cdk list` を回した | 3.1.1 として章を足した |
+
+**3 つ目が最も悪い。** 手順書に無い操作を補って進んだので、
+**書いていなかったこと自体が見えなくなっていた**（`verify-runbook` が名指しで禁じている）。
+読者は補完できない。
+
+**`maint` は AWS にデプロイしていない。** 3.2 以降は通していない。
 
 **6 章（撤去）もこの通しで実行した。** 案件 186 秒・土台 30 秒。
 `FdeDemo-*` が残っていないことを確認している。
