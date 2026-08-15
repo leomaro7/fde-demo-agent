@@ -200,6 +200,31 @@ Bedrock 経由なら不要。**プロバイダが変わっても設定の形は�
 上の 3 つはいずれも `responseStreamingSupported: true`、
 `inferenceTypesSupported: ["INFERENCE_PROFILE"]`（＝素の ID では呼べない）。
 
+**ID が正しくても、アカウントが規約に同意していないモデルは呼べない。**
+Harness の作成は成功し、`InvokeHarness` の**ストリームの中で**こう返る。
+
+```
+AccessDeniedException ... not authorized to perform the required AWS Marketplace
+actions (aws-marketplace:ViewSubscriptions, aws-marketplace:Subscribe)
+```
+
+**実行ロールの権限不足と読めるが、実際はアカウントの同意が無いだけのことがある。**
+ロールを広げる前に次を見る（`--model-id` は**プロファイルではなく素の ID**）。
+
+```bash
+aws bedrock get-foundation-model-availability --region ap-northeast-1 \
+  --model-id anthropic.claude-sonnet-5 \
+  --query '[agreementAvailability.status,authorizationStatus,entitlementAvailability]' --output text
+```
+
+`NOT_AVAILABLE AUTHORIZED AVAILABLE` なら**規約未同意**。画面から同意する（人の操作）。
+2026-08-15 の実測では Sonnet 5 と GPT-5.6 Terra が未同意、Sonnet 4.6 と Nova 2 Lite は同意済みだった。
+
+**ツール呼び出しのイベント形状はモデルによらず同じ**（同日実測）。
+`contentBlockStart` の `start.toolUse` と `contentBlockDelta` の `delta.toolUse.input`。
+違うのは断片の粒度だけで、Nova は入力を 1 回で返し、Claude と GPT は分割して返す。
+**GPT の `toolUse` には `type` が入らない**ので、実行するツールの判定に `type` を使わないこと。
+
 **`global.` は推論の経路が日本国内に限定されない。** このデモ基盤はダミーデータしか
 扱わないので支障は無いが、商談で聞かれることがある。
 

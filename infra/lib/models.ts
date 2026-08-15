@@ -17,22 +17,40 @@
  * 支障は無いが、商談で聞かれることがある。
  */
 export const MODELS = {
-  /**
-   * 既定。**通しで動かして確かめてあるのはこれだけ。**
-   *
-   * このデモはツール呼び出し（return-of-control）に依存しており、
-   * `web/src/agent/streamParser.ts` は Claude のストリームを実測して作ってある。
-   */
+  /** 既定。 */
   sonnet5: 'global.anthropic.claude-sonnet-5',
 
-  /** **未検証。** ツール呼び出しのイベント形状が同じかを確かめていない。 */
+  /** ストリームの形は Claude と同一であることを実測済み（2026-08-15）。 */
   gpt56terra: 'global.openai.gpt-5.6-terra',
 
   /**
-   * **未検証。** 3 つの中で唯一 `jp.` があり、推論が日本国内に閉じる。
+   * **ツールを 1 往復するところまで実測済み**（2026-08-15）。
+   * 3 つの中で唯一 `jp.` があり、推論が日本国内に閉じる。
    * データの所在をクライアントに聞かれる案件では、ここが効くことがある。
    */
   nova2lite: 'jp.amazon.nova-2-lite-v1:0',
+
+  /** `jp.` で動く Claude の中では最新。実測で通っている（2026-08-15）。 */
+  sonnet46: 'jp.anthropic.claude-sonnet-4-6',
 } as const;
 
 export type ModelId = (typeof MODELS)[keyof typeof MODELS];
+
+/**
+ * **モデルを変えたら、必ず動かして確かめる。**
+ *
+ * 使えるかどうかは ID の正しさだけでは決まらない。**アカウントが規約に同意して
+ * いないモデルは `AccessDeniedException` になる**（実測。2026-08-15 の時点で
+ * このアカウントは Sonnet 5 と GPT-5.6 Terra が未同意だった）。
+ * 同意はマーケットプレイスの契約なので、画面から人が行う。
+ *
+ * 先に確かめる（`AVAILABLE` なら通る。ID は**プロファイルではなく素のほう**）:
+ *
+ *   aws bedrock get-foundation-model-availability --region ap-northeast-1 \
+ *     --model-id anthropic.claude-sonnet-5 \
+ *     --query 'agreementAvailability.status' --output text
+ *
+ * そのうえで 1 往復させる（ブラウザを開かずに済む）:
+ *
+ *   npx tsx scripts/probe-roundtrip.ts <slug> "質問"
+ */
