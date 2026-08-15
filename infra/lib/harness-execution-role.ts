@@ -34,6 +34,22 @@ export function harnessExecutionRole(scope: Construct, id: string): iam.Role {
     }),
   );
 
+  /**
+   * **Marketplace 経由で提供されるモデルには、これが要る。**
+   *
+   * 無いと `InvokeHarness` のストリームの中で AccessDeniedException になる。
+   * 本文は「IAM user or service role is not authorized」なので**アカウントの
+   * 規約未同意にも読めるが、塞いでいるのはこのロール**（2026-08-15 に踏んだ。
+   * 同じモデルを自分の資格情報で `bedrock-runtime converse` すると通る）。
+   */
+  role.addToPolicy(
+    new iam.PolicyStatement({
+      sid: 'MarketplaceSubscriptionCheck',
+      actions: ['aws-marketplace:ViewSubscriptions'],
+      resources: ['*'],
+    }),
+  );
+
   role.addToPolicy(
     new iam.PolicyStatement({
       sid: 'XRayTracingAccess',

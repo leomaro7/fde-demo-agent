@@ -17,10 +17,14 @@
  * 支障は無いが、商談で聞かれることがある。
  */
 export const MODELS = {
-  /** 既定。 */
+  /** 既定。**ツールを 1 往復するところまで実測済み**（2026-08-15）。 */
   sonnet5: 'global.anthropic.claude-sonnet-5',
 
-  /** ストリームの形は Claude と同一であることを実測済み（2026-08-15）。 */
+  /**
+   * **このアカウントでは使えない**（2026-08-15 実測）。OpenAI モデルの
+   * サブスクリプションが無く、自分の資格情報で直接呼んでも弾かれる。
+   * ストリームの形自体は Claude と同一であることを確認済み。
+   */
   gpt56terra: 'global.openai.gpt-5.6-terra',
 
   /**
@@ -37,20 +41,13 @@ export const MODELS = {
 export type ModelId = (typeof MODELS)[keyof typeof MODELS];
 
 /**
- * **モデルを変えたら、必ず動かして確かめる。**
+ * **モデルを変えたら、必ず動かして確かめる。ID を引いただけでは分からない。**
  *
- * 使えるかどうかは ID の正しさだけでは決まらない。**アカウントが規約に同意して
- * いないモデルは `AccessDeniedException` になる**（実測。2026-08-15 の時点で
- * このアカウントは Sonnet 5 と GPT-5.6 Terra が未同意だった）。
- * 同意はマーケットプレイスの契約なので、画面から人が行う。
+ * 使えないときは `AccessDeniedException` になるが、**原因は 2 つあって文言は同じ**。
+ * 実行ロールの権限不足か、アカウントにそのモデルの契約が無いか。
+ * 切り分けと直し方は `aws-facts.md`（自分の資格情報で直接呼んでみる）。
  *
- * 先に確かめる（`AVAILABLE` なら通る。ID は**プロファイルではなく素のほう**）:
- *
- *   aws bedrock get-foundation-model-availability --region ap-northeast-1 \
- *     --model-id anthropic.claude-sonnet-5 \
- *     --query 'agreementAvailability.status' --output text
- *
- * そのうえで 1 往復させる（ブラウザを開かずに済む）:
+ * ブラウザを開かずに 1 往復させる:
  *
  *   npx tsx scripts/probe-roundtrip.ts <slug> "質問"
  */

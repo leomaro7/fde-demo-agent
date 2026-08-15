@@ -200,25 +200,40 @@ Bedrock 経由なら不要。**プロバイダが変わっても設定の形は�
 上の 3 つはいずれも `responseStreamingSupported: true`、
 `inferenceTypesSupported: ["INFERENCE_PROFILE"]`（＝素の ID では呼べない）。
 
-**ID が正しくても、アカウントが規約に同意していないモデルは呼べない。**
-Harness の作成は成功し、`InvokeHarness` の**ストリームの中で**こう返る。
+**ID が正しくても、実行ロールに Marketplace の権限が無いと呼べない**（2026-08-15 実測）。
+
+`CreateHarness` は成功し、`InvokeHarness` の**ストリームの中で**こう返る。
 
 ```
 AccessDeniedException ... not authorized to perform the required AWS Marketplace
 actions (aws-marketplace:ViewSubscriptions, aws-marketplace:Subscribe)
 ```
 
-**実行ロールの権限不足と読めるが、実際はアカウントの同意が無いだけのことがある。**
-ロールを広げる前に次を見る（`--model-id` は**プロファイルではなく素の ID**）。
+**本文は 2 つの別々の原因を同じ文言で返す。** 切り分けは、**同じモデルを自分の
+資格情報で直接呼ぶ**のが最短。
 
 ```bash
-aws bedrock get-foundation-model-availability --region ap-northeast-1 \
-  --model-id anthropic.claude-sonnet-5 \
-  --query '[agreementAvailability.status,authorizationStatus,entitlementAvailability]' --output text
+aws bedrock-runtime converse --region ap-northeast-1 \
+  --model-id <プロファイル ID> \
+  --messages '[{"content":[{"text":"hi"}],"role":"user"}]'
 ```
 
-`NOT_AVAILABLE AUTHORIZED AVAILABLE` なら**規約未同意**。画面から同意する（人の操作）。
-2026-08-15 の実測では Sonnet 5 と GPT-5.6 Terra が未同意、Sonnet 4.6 と Nova 2 Lite は同意済みだった。
+| 直接呼ぶと | 原因 | 直し方 |
+|---|---|---|
+| **通る** | **実行ロールの権限不足** | ロールに `aws-marketplace:ViewSubscriptions` を足す（`Subscribe` は不要）|
+| **同じエラー** | **アカウントにそのモデルのサブスクリプションが無い** | 契約の手続きが要る。コードでは直らない |
+
+**`get-foundation-model-availability` の `agreementAvailability` は当てにならない。**
+Sonnet 5 は `NOT_AVAILABLE` と出たが、実際には呼べた。この値で判断しないこと。
+
+2026-08-15 の実測（`user/vscode` から直接呼んだ結果）。
+
+| モデル | 直接呼ぶ | Harness から |
+|---|---|---|
+| `global.anthropic.claude-sonnet-5` | 通る | **`ViewSubscriptions` を足して通った** |
+| `jp.anthropic.claude-sonnet-4-6` | 通る | 通る |
+| `jp.amazon.nova-2-lite-v1:0` | 通る | 通る |
+| `global.openai.gpt-5.6-terra` | **弾かれる** | 弾かれる（アカウント側の契約が無い）|
 
 **ツール呼び出しのイベント形状はモデルによらず同じ**（同日実測）。
 `contentBlockStart` の `start.toolUse` と `contentBlockDelta` の `delta.toolUse.input`。
