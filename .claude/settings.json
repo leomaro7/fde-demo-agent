@@ -13,7 +13,9 @@
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -33,7 +35,11 @@
       "Bash(npx cdk destroy:*)",
       "Bash(git push:*)",
       "Bash(gh repo create:*)",
-      "Bash(rm -rf:*)"
+      "Bash(rm -rf:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue edit:*)"
     ]
   },
   "hooks": {

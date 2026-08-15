@@ -48,6 +48,7 @@
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | 設計判断をするとき。4 章に要件、5 章に設計原則、**7 章に未解決の論点** |
 | [.claude/skills/aws-fact-check/references/aws-facts.md](.claude/skills/aws-fact-check/references/aws-facts.md) | AWS を触るとき。実測済みの仕様。**再調査不要** |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 「なぜこうなっているのか」を追うとき |
+| GitHub の Issue（`gh issue list`） | 次に何をやるかを決めるとき。**先送りにした課題と、そこまでに分かったこと** |
 
 ---
 
@@ -113,6 +114,7 @@ UI と AWS 呼び出しは通し確認。自動テストに時間をかけるよ
 | | いつ使うか |
 |---|---|
 | `new-demo`（skill） | 打ち合わせメモを受け取った直後。**メモからデプロイ直前までを通しでやる** |
+| `file-issue`（skill） | 「次回にしましょう」と決めたとき。**調べた結果ごと GitHub Issue に残す** |
 | `aws-fact-check`（skill） | AWS の API・CDK・CLI を書く前 |
 | `verify-runbook`（skill） | 手順書を**書くとき**、および既存の手順書を検証するとき |
 | `cleanup-check`（skill） | 撤去した後、稼働数が想定と違うとき |
