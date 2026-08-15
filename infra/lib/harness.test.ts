@@ -12,7 +12,7 @@ function synth(tools?: readonly HarnessToolSpec[]) {
     instance: 'demo1',
     slug: 'smoke',
     executionRoleArn: 'arn:aws:iam::123456789012:role/role-name',
-    modelId: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    modelId: 'global.anthropic.claude-sonnet-5',
     systemPrompt: 'あなたは検証用のエージェントです。',
     tools: tools ?? [
       {

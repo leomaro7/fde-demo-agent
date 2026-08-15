@@ -9,7 +9,7 @@ export const demo: DemoConfig = {
   clientName: '検証用',
   brand: { primary: '#2563eb' },
   harness: {
-    modelId: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    modelId: 'global.anthropic.claude-sonnet-5',
     systemPrompt: [
       'あなたは社内規程についての問い合わせに答えるアシスタントです。',
       '',

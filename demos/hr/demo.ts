@@ -15,7 +15,7 @@ export const demo: DemoConfig = {
   clientName: 'サンプル製造株式会社',
   brand: { primary: '#7c3aed' },
   harness: {
-    modelId: 'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+    modelId: 'global.anthropic.claude-sonnet-5',
     systemPrompt: [
       'あなたは人事総務部の一次窓口として、従業員からの問い合わせに答える担当者です。',
       '',

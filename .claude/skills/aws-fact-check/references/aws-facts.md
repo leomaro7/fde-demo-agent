@@ -174,6 +174,29 @@ CDK が変換する。**構造と許容値の対応表として読むこと。**
 `dist/cdk/constructs/components/primitives/harness/harness-cfn-mapping.js`（全文を読んだ）と、
 `aws bedrock-agentcore-control create-harness help`。
 
+### モデル ID は推論プロファイルから引く（2026-08-15 実測 / ap-northeast-1）
+
+**`jp.` があるモデルと無いモデルがある。推測しない。**
+
+```bash
+aws bedrock list-inference-profiles --region ap-northeast-1 \
+  --query "inferenceProfileSummaries[].[inferenceProfileId,status]" --output text
+```
+
+| モデル | プロファイル |
+|---|---|
+| **Sonnet 5** | **`global.anthropic.claude-sonnet-5` のみ。`jp.` は存在しない** |
+| Sonnet 4.5 | `jp.` / `global.` / `apac.` |
+| Sonnet 4.6 | `jp.` / `global.` |
+| Haiku 4.5 | `jp.` |
+| Opus 4.7 / 4.8 | `jp.` |
+
+**`global.` は推論の経路が日本国内に限定されない。** このデモ基盤はダミーデータしか
+扱わないので支障は無いが、商談で聞かれることがある。
+
+`list-foundation-models` にはプロファイルの無い素の ID（`anthropic.claude-sonnet-5`）も
+出る。**Harness に渡すのはプロファイル ID のほう。**
+
 ```jsonc
 {
   "HarnessName": "instance_slug",          // createOnly・40 文字以内
