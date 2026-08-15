@@ -1,4 +1,5 @@
 import type { DemoConfig } from '../../infra/lib/demo-config.js';
+import { MODELS } from '../../infra/lib/models.js';
 
 /**
  * データ分析型の案件。
@@ -12,7 +13,7 @@ export const demo: DemoConfig = {
   clientName: 'サンプル流通株式会社',
   brand: { primary: '#0f766e' },
   harness: {
-    modelId: 'global.anthropic.claude-sonnet-5',
+    modelId: MODELS.sonnet5,
     systemPrompt: [
       'あなたは全社の売上データを見て、経営判断の材料を出すアナリストです。',
       '',

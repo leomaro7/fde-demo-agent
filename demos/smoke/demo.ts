@@ -1,4 +1,5 @@
 import type { DemoConfig } from '../../infra/lib/demo-config.js';
+import { MODELS } from '../../infra/lib/models.js';
 
 /**
  * 土台の検証専用の案件。商談用ではない。
@@ -9,7 +10,7 @@ export const demo: DemoConfig = {
   clientName: '検証用',
   brand: { primary: '#2563eb' },
   harness: {
-    modelId: 'global.anthropic.claude-sonnet-5',
+    modelId: MODELS.sonnet5,
     systemPrompt: [
       'あなたは社内規程についての問い合わせに答えるアシスタントです。',
       '',

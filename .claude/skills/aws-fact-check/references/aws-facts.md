@@ -186,10 +186,19 @@ aws bedrock list-inference-profiles --region ap-northeast-1 \
 | モデル | プロファイル |
 |---|---|
 | **Sonnet 5** | **`global.anthropic.claude-sonnet-5` のみ。`jp.` は存在しない** |
+| **GPT-5.6 Terra** | **`global.openai.gpt-5.6-terra`**（sol / luna も `global.` のみ） |
+| **Nova 2 Lite** | **`jp.amazon.nova-2-lite-v1:0`** / `global.` |
 | Sonnet 4.5 | `jp.` / `global.` / `apac.` |
 | Sonnet 4.6 | `jp.` / `global.` |
 | Haiku 4.5 | `jp.` |
 | Opus 4.7 / 4.8 | `jp.` |
+
+**OpenAI と Amazon のモデルも `bedrockModelConfig` で渡す。**
+`openAiModelConfig` は API キー（`apiKeyArn`）が要る直接続き用で、
+Bedrock 経由なら不要。**プロバイダが変わっても設定の形は変わらない。**
+
+上の 3 つはいずれも `responseStreamingSupported: true`、
+`inferenceTypesSupported: ["INFERENCE_PROFILE"]`（＝素の ID では呼べない）。
 
 **`global.` は推論の経路が日本国内に限定されない。** このデモ基盤はダミーデータしか
 扱わないので支障は無いが、商談で聞かれることがある。

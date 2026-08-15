@@ -1,4 +1,5 @@
 import type { DemoConfig } from '../../infra/lib/demo-config.js';
+import { MODELS } from '../../infra/lib/models.js';
 
 /**
  * ナレッジ判断型の案件。
@@ -15,7 +16,7 @@ export const demo: DemoConfig = {
   clientName: 'サンプル製造株式会社',
   brand: { primary: '#7c3aed' },
   harness: {
-    modelId: 'global.anthropic.claude-sonnet-5',
+    modelId: MODELS.sonnet5,
     systemPrompt: [
       'あなたは人事総務部の一次窓口として、従業員からの問い合わせに答える担当者です。',
       '',
