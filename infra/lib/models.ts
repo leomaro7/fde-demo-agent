@@ -7,7 +7,7 @@
  *
  * ここに無いモデルを使いたくなったら、**推論プロファイルを引いてから足す**。
  * 素の ID（`anthropic.claude-sonnet-5`）ではなくプロファイル ID を書くこと。
- * 3 つとも `inferenceTypesSupported` が `INFERENCE_PROFILE` だけで、素の ID は通らない。
+ * ここに並ぶものは `inferenceTypesSupported` が `INFERENCE_PROFILE` だけで、素の ID は通らない。
  *
  *   aws bedrock list-inference-profiles --region ap-northeast-1 \
  *     --query "inferenceProfileSummaries[].[inferenceProfileId,status]" --output text
@@ -21,7 +21,7 @@ export const MODELS = {
   /** 既定。**ツールを最後まで往復するところまで実測済み**（2026-08-15）。 */
   sonnet5: 'global.anthropic.claude-sonnet-5',
 
-/**
+  /**
    * **ツールを最後まで往復するところまで実測済み**（2026-08-15）。
    * 初回の呼び出しは `AccessDenied` になり、購読が済んだ後に通った。
    * `toolUse` に `type` が入らない点だけ Claude と違う。
@@ -51,4 +51,9 @@ export type ModelId = (typeof MODELS)[keyof typeof MODELS];
  * ブラウザを開かずに 1 往復させる:
  *
  *   npx tsx scripts/probe-roundtrip.ts <slug> "質問"
+ *
+ * **新しいモデルの購読は Harness では始まらない。** 実行ロールに `Subscribe` を
+ * 持たせていないため、Harness からいくら呼び直しても待つだけになる。
+ * 先に**自分の資格情報で** `aws bedrock-runtime converse` を 1 回叩いて購読を通し、
+ * それから Harness で試すこと。
  */

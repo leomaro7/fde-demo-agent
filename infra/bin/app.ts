@@ -10,6 +10,13 @@ const instance = app.node.tryGetContext('instance');
 if (!instance) {
   throw new Error('instance が指定されていません。`cdk deploy -c instance=<name>` で渡してください。');
 }
+// Cognito ドメインの実制約。CDK の synth 時検証は `^[a-z0-9-]+$` までしか見ないので、
+// 末尾ハイフンだと synth も cdk list も通り、**デプロイの途中で落ちる**
+if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(instance)) {
+  throw new Error(
+    `instance は小文字英数字とハイフン、先頭と末尾はハイフン以外にしてください: "${instance}"`,
+  );
+}
 
 const env = { region: 'ap-northeast-1', account: process.env.CDK_DEFAULT_ACCOUNT };
 

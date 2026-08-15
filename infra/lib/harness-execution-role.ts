@@ -41,6 +41,14 @@ export function harnessExecutionRole(scope: Construct, id: string): iam.Role {
    * 本文は「IAM user or service role is not authorized」なので**アカウントの
    * 規約未同意にも読めるが、塞いでいるのはこのロール**（2026-08-15 に踏んだ。
    * 同じモデルを自分の資格情報で `bedrock-runtime converse` すると通る）。
+   *
+   * **`*` 以外は書けない。** `ViewSubscriptions` は Service Reference に
+   * `Resources` も `ActionConditionKeys` も持たない（＝リソースレベルの指定も
+   * `ProductId` による絞り込みも存在しない）。AWS 管理ポリシーの
+   * `AmazonBedrockFullAccess` も同じく `Resource: "*"` で書いている。
+   *
+   * **`Subscribe` は足さない。** 購読は課金の発生する契約行為で、実行ロールに要らない。
+   * `ViewSubscriptions` だけで通ることは実測済み。
    */
   role.addToPolicy(
     new iam.PolicyStatement({

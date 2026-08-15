@@ -52,6 +52,19 @@ describe('FoundationStack', () => {
     });
   });
 
+  it('Marketplace の参照権限がある（Sonnet 5 を呼ぶのに要る）', () => {
+    // これが消えても tsc も npm test も cdk synth も通る。気づくのは Harness を
+    // 呼んだときのストリームの中で、しかもエラー本文は「アカウントに契約が無い」
+    // 場合と同じ。商談の場で踏むと切り分けに時間がかかる（2026-08-15 に踏んだ）
+    synth().hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: Match.objectLike({
+        Statement: Match.arrayWith([
+          Match.objectLike({ Action: 'aws-marketplace:ViewSubscriptions', Resource: '*' }),
+        ]),
+      }),
+    });
+  });
+
   it('Hosted UI の URL を出力する（フロントのログイン先）', () => {
     const outputs = synth().findOutputs('HostedUiDomain');
     expect(JSON.stringify(outputs)).toContain('.auth.ap-northeast-1.amazoncognito.com');
