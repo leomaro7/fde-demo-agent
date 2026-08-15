@@ -1,9 +1,10 @@
 /**
- * ツールを 1 往復させて、モデルが**この基盤のツールループで動くか**を確かめる。
+ * ツールを最後まで往復させて、モデルが**この基盤のツールループで動くか**を確かめる。
  *
  * `probe-harness.ts` は 1 ターン目の生イベントを見るためのもので、
  * **ツール結果を返した後まで見ない。** モデルを変えたときに知りたいのは
- * 「呼んでくるか」ではなく「結果を渡したら答えを書くか」なので、こちらを使う。
+ * 「呼んでくるか」ではなく「結果を渡したら最後まで書くか」なので、こちらを使う。
+ * 1 往復では足りない。**2 周目でもう一度検索するモデルがある**（実測）。
  *
  * ブラウザを開かずに済むぶん速い。ただし**画面の表示は確かめられない**ので、
  * 商談前の通し確認（RUNBOOK 7 章）の代わりにはならない。
@@ -68,51 +69,51 @@ function textOf(events: StreamEvent[]): string {
   return only(events, 'text').map((e) => e.text).join('');
 }
 
-const userMessage = { role: 'user', content: [{ text: prompt }] };
-const first = await turn([userMessage]);
+const messages: unknown[] = [{ role: 'user', content: [{ text: prompt }] }];
 
-const error = only(first, 'error')[0];
-if (error) throw new Error(error.message);
+// 画面の toolLoop と同じ上限。超えたら止める（言い換えを重ねて回り続けるのを防ぐ）
+const MAX_ROUNDS = 6;
+for (let round = 1; round <= MAX_ROUNDS; round++) {
+  const events = await turn(messages);
 
-const use = only(first, 'toolUse')[0];
-const stop1 = only(first, 'stop')[0];
-console.log('--- 1 ターン目 ---');
-console.log('終了理由:', stop1?.reason ?? '(無し)');
+  const failure = only(events, 'error')[0];
+  if (failure) throw new Error(failure.message);
 
-if (!use) {
-  // ツールを呼ばずに答えたなら、そのモデルはこの案件の指示文に従っていない
-  console.log('**ツールを呼ばなかった。**');
-  console.log('本文:', textOf(first));
-  process.exit(1);
+  const text = textOf(events);
+  const stop = only(events, 'stop')[0];
+  const use = only(events, 'toolUse')[0];
+  console.log(`--- ${round} 周目（終了理由: ${stop?.reason ?? '無し'}）---`);
+  if (text) console.log(text);
+
+  if (!use) {
+    if (round === 1) {
+      // ツールを呼ばずに答えたなら、そのモデルはこの案件の指示文に従っていない
+      console.log('**1 周目でツールを呼ばなかった。**');
+      process.exit(1);
+    }
+    break;
+  }
+
+  const input = only(events, 'toolUseInput')
+    .filter((e) => e.contentBlockIndex === use.contentBlockIndex)
+    .map((e) => e.input)
+    .join('');
+  console.log(`[${use.name}] ${input}`);
+
+  const parsedInput: unknown = JSON.parse(input);
+  const result = tools[use.name]?.(parsedInput as never);
+  if (result === undefined) throw new Error(`案件 ${slug} に ${use.name} の実装がありません`);
+
+  messages.push(
+    { role: 'assistant', content: [{ toolUse: { toolUseId: use.toolUseId, name: use.name, input: parsedInput } }] },
+    {
+      role: 'user',
+      content: [{ toolResult: { toolUseId: use.toolUseId, content: [{ text: result }], status: 'success' } }],
+    },
+  );
+
+  if (round === MAX_ROUNDS) console.log(`**${MAX_ROUNDS} 周しても終わらなかった。**`);
 }
-
-const input = only(first, 'toolUseInput')
-  .filter((e) => e.contentBlockIndex === use.contentBlockIndex)
-  .map((e) => e.input)
-  .join('');
-console.log('ツール:', use.name);
-console.log('引数  :', input);
-
-const parsedInput: unknown = JSON.parse(input);
-const result = tools[use.name]?.(parsedInput as never);
-if (result === undefined) throw new Error(`案件 ${slug} に ${use.name} の実装がありません`);
-
-const second = await turn([
-  userMessage,
-  { role: 'assistant', content: [{ toolUse: { toolUseId: use.toolUseId, name: use.name, input: parsedInput } }] },
-  {
-    role: 'user',
-    content: [{ toolResult: { toolUseId: use.toolUseId, content: [{ text: result }], status: 'success' } }],
-  },
-]);
-
-const error2 = only(second, 'error')[0];
-if (error2) throw new Error(error2.message);
-
-console.log('--- 2 ターン目（ツール結果を返した後）---');
-console.log('終了理由:', only(second, 'stop')[0]?.reason ?? '(無し)');
-console.log('本文:');
-console.log(textOf(second));
 
 function requireEnv(name: string): string {
   const v = process.env[name];

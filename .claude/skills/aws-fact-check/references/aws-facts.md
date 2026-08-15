@@ -221,19 +221,28 @@ aws bedrock-runtime converse --region ap-northeast-1 \
 | 直接呼ぶと | 原因 | 直し方 |
 |---|---|---|
 | **通る** | **実行ロールの権限不足** | ロールに `aws-marketplace:ViewSubscriptions` を足す（`Subscribe` は不要）|
-| **同じエラー** | **アカウントにそのモデルのサブスクリプションが無い** | 契約の手続きが要る。コードでは直らない |
+| **同じエラー** | **そのモデルの購読がまだ済んでいない** | **1 回目の呼び出しが購読を開始する。** 数分待って呼び直す |
+
+**1 回目が失敗しても諦めない。** エラー本文の末尾に
+「If you recently fixed this issue, try again after 2 minutes」とある。
+GPT-5.6 Terra は 1 回目が `AccessDenied`、しばらく後に呼び直すと通った（2026-08-15 実測）。
 
 **`get-foundation-model-availability` の `agreementAvailability` は当てにならない。**
-Sonnet 5 は `NOT_AVAILABLE` と出たが、実際には呼べた。この値で判断しないこと。
+Sonnet 5 は `NOT_AVAILABLE` と出たが実際には呼べた。GPT-5.6 Terra は失敗後に
+`AVAILABLE` へ変わった。**この値で判断せず、呼んでみること。**
 
-2026-08-15 の実測（`user/vscode` から直接呼んだ結果）。
+2026-08-15 の実測。**4 つとも Harness からツールを最後まで往復できた。**
 
-| モデル | 直接呼ぶ | Harness から |
+| モデル | プロファイル | 備考 |
 |---|---|---|
-| `global.anthropic.claude-sonnet-5` | 通る | **`ViewSubscriptions` を足して通った** |
-| `jp.anthropic.claude-sonnet-4-6` | 通る | 通る |
-| `jp.amazon.nova-2-lite-v1:0` | 通る | 通る |
-| `global.openai.gpt-5.6-terra` | **弾かれる** | 弾かれる（アカウント側の契約が無い）|
+| Claude Sonnet 5 | `global.` | ロールに `ViewSubscriptions` が要る |
+| Claude Sonnet 4.6 | `jp.` | |
+| Nova 2 Lite | `jp.` | 入力を 1 回で返す（分割しない）|
+| GPT-5.6 Terra | `global.` | 初回は `AccessDenied`。購読の完了後に通った。`toolUse` に `type` が無い |
+
+**`global.` でも東京は経路に入る。** `get-inference-profile` の `models[].modelArn` に
+`ap-northeast-1` が含まれる。ただしリージョン指定なしの ARN も並ぶので**東京に固定はされない**。
+`jp.` は `ap-northeast-1` と `ap-northeast-3` だけ。
 
 **ツール呼び出しのイベント形状はモデルによらず同じ**（同日実測）。
 `contentBlockStart` の `start.toolUse` と `contentBlockDelta` の `delta.toolUse.input`。
