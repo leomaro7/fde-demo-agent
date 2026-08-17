@@ -6,9 +6,9 @@
     "allow": [
       "Bash(aws * --generate-cli-skeleton:*)",
       "Bash(aws * describe-*:*)",
-      "Bash(aws * get-*:*)",
       "Bash(aws * list-*:*)",
       "Bash(aws --version)",
+      "Bash(aws bedrock get-*:*)",
       "Bash(aws sts get-caller-identity:*)",
       "Bash(cd:*)",
       "Bash(echo:*)",
@@ -16,7 +16,6 @@
       "Bash(gh issue view:*)",
       "Bash(gh repo view:*)",
       "Bash(git add:*)",
-      "Bash(git branch:*)",
       "Bash(git check-ignore:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
