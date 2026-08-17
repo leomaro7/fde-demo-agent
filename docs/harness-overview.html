@@ -1,0 +1,366 @@
+<!--
+  ハーネスのまとめ（図つき）。
+
+  **公開先は同じ URL を使い回す。** 別のセッションから更新するときは、
+  Artifact に `url` としてこれを渡すこと。渡さないと別の URL が切られる。
+
+    https://claude.ai/code/artifact/63b8cb12-a87b-4b1f-88c9-74bb2e8b0f0c
+
+  既定は非公開。URL を知っていても、共有しない限り他の人は見られない。
+
+  **数字は 2026-08-15 時点のもの**（要件書 5.7 に反するが、日付つきの棚卸しの
+  記録なので残している）。ハーネスを直したら、ここも直して公開し直すこと。
+-->
+<title>FDE デモ基盤のハーネス</title>
+<style>
+  :root {
+    --paper:      #f5f7f7;
+    --surface:    #ffffff;
+    --ink:        #17222a;
+    --muted:      #66787f;
+    --accent:     #0d6b66;
+    --accent-wash:#e2efed;
+    --clay:       #9d5330;
+    --rule:       #d6e0e0;
+    --shadow:     0 1px 2px rgba(23,34,42,.05), 0 8px 24px -16px rgba(23,34,42,.28);
+
+    --mincho: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", Georgia, serif;
+    --gothic: "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", system-ui, sans-serif;
+    --mono:   ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0f171d;
+      --surface:    #16212a;
+      --ink:        #dde6e9;
+      --muted:      #8ea3ab;
+      --accent:     #5cb6b0;
+      --accent-wash:#183430;
+      --clay:       #c98a63;
+      --rule:       #26343d;
+      --shadow:     0 1px 2px rgba(0,0,0,.35), 0 8px 24px -16px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:      #0f171d;
+    --surface:    #16212a;
+    --ink:        #dde6e9;
+    --muted:      #8ea3ab;
+    --accent:     #5cb6b0;
+    --accent-wash:#183430;
+    --clay:       #c98a63;
+    --rule:       #26343d;
+    --shadow:     0 1px 2px rgba(0,0,0,.35), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--gothic);
+    font-size: 16px;
+    line-height: 1.85;
+    margin: 0;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1.1rem, 5vw, 2rem) 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 50rem; margin: 0 auto; display: flex; flex-direction: column; gap: 3.25rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 .7rem;
+  }
+  h1 {
+    font-family: var(--mincho); font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1.3;
+    margin: 0 0 .9rem; text-wrap: balance; letter-spacing: .01em;
+  }
+  h2 {
+    font-family: var(--mincho); font-weight: 600;
+    font-size: clamp(1.25rem, 3vw, 1.5rem); line-height: 1.45;
+    margin: 0 0 1.1rem; padding-bottom: .55rem;
+    border-bottom: 1px solid var(--rule); text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--gothic); font-weight: 700; font-size: 1rem;
+    margin: 0 0 .5rem; letter-spacing: .01em;
+  }
+  p { margin: 0 0 1.05rem; }
+  p:last-child { margin-bottom: 0; }
+  section > p:first-of-type { margin-top: 0; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin-bottom: 0; }
+  strong { font-weight: 700; }
+  code {
+    font-family: var(--mono); font-size: .85em;
+    background: var(--accent-wash); color: inherit;
+    padding: .1em .38em; border-radius: 3px;
+  }
+
+  /* 計器盤 */
+  .gauges {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+    gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 4px; overflow: hidden;
+  }
+  .gauge { background: var(--surface); padding: 1rem 1.1rem; }
+  .gauge dt {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: .3rem;
+  }
+  .gauge dd {
+    margin: 0; font-family: var(--mincho); font-size: 1.65rem; line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .gauge dd span { font-family: var(--gothic); font-size: .78rem; color: var(--muted); margin-left: .3em; }
+
+  /* 図面 — テーマによらず明るい面に置く（図の可読性を優先） */
+  .sheet {
+    background: #fbfcfb; color: #17222a;
+    border: 1px solid #ccd8d8; border-radius: 4px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem 1.2rem 1.1rem;
+    overflow-x: auto;
+  }
+  .sheet .mermaid { display: flex; justify-content: center; min-width: min-content; }
+  .sheet-label {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .12em;
+    text-transform: uppercase; color: #4c6a67;
+    margin: 1rem 0 0; padding-top: .7rem; border-top: 1px solid #e2eaea;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: .93rem; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; padding: .62rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); font-weight: 400;
+    border-bottom: 1px solid var(--ink);
+  }
+  td:first-child { font-family: var(--mono); font-size: .84rem; white-space: nowrap; }
+  .origin { color: var(--clay); }
+
+  ul { margin: 0 0 1.05rem; padding-left: 1.15rem; }
+  li { margin-bottom: .45rem; }
+  li::marker { color: var(--accent); }
+
+  .note {
+    border-left: 2px solid var(--accent); padding: .1rem 0 .1rem 1.1rem;
+    color: var(--muted); font-size: .95rem;
+  }
+  .note strong { color: var(--ink); }
+
+  .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.6rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 1.1rem 1.2rem;
+  }
+  .card p:last-child { margin-bottom: 0; }
+  .card .tag {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+    text-transform: uppercase; display: block; margin-bottom: .45rem;
+  }
+  .tag-add { color: var(--accent); }
+  .tag-cut { color: var(--clay); }
+
+  footer {
+    border-top: 1px solid var(--rule); padding-top: 1.2rem;
+    font-size: .87rem; color: var(--muted);
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Harness Overview / 2026-08-15</p>
+    <h1>打ち合わせメモから商談までを、<br>止まらずに通すための仕掛け</h1>
+    <p class="lede">FDE デモ基盤のハーネス。ルールは <strong>前身と今日、実際に踏んだ失敗からしか来ていない</strong>。この文書は何がどこで発火するかと、なぜそれが在るのかを 1 枚にまとめたもの。</p>
+  </header>
+
+  <section>
+    <dl class="gauges">
+      <div class="gauge"><dt>Skills</dt><dd>6<span>本</span></dd></div>
+      <div class="gauge"><dt>Agents</dt><dd>2<span>体</span></dd></div>
+      <div class="gauge"><dt>Hooks</dt><dd>1<span>個</span></dd></div>
+      <div class="gauge"><dt>Plugins</dt><dd>4<span>個</span></dd></div>
+      <div class="gauge"><dt>Scripts</dt><dd>5<span>本</span></dd></div>
+      <div class="gauge"><dt>Permissions</dt><dd>32<span>件</span></dd></div>
+    </dl>
+    <p class="note" style="margin-top:1.1rem"><strong>フックは 1 つだけ。</strong> 検査を増やすほど遅くなるので、確認はスキルの手順に埋め込んで、フックには「今どのアカウントに何が動いているか」を出す役だけを持たせている。</p>
+  </section>
+
+  <section>
+    <h2>常に効いている層</h2>
+    <p>スキルやエージェントは呼ばれたときだけ動く。その下に、<strong>読み込まれた時点で効いているもの</strong>がある。</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>層</th><th>何が入っているか</th><th>共有</th></tr></thead>
+        <tbody>
+          <tr><td>CLAUDE.md</td><td>判断の基準・守るルール・作業のルール。<strong>毎回いちばん先に読まれる</strong></td><td>リポジトリ</td></tr>
+          <tr><td>settings.json</td><td>権限（allow 12 / ask 11 / deny 9）、<code>AWS_REGION</code>、有効化するプラグイン、セッション開始フック</td><td>リポジトリ</td></tr>
+          <tr><td>settings.local.json</td><td>個人の許可 32 件と skill の無効化。<strong><code>.gitignore</code> 済み</strong>で、他の人には効かない</td><td>手元だけ</td></tr>
+          <tr><td>plugins</td><td><code>aws-core</code> / <code>aws-agents</code> / <code>context7</code> / <code>superpowers</code></td><td>リポジトリ</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 style="margin-top:1.8rem">プラグインが持ち込むもの</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>プラグイン</th><th>何が使えるようになるか</th></tr></thead>
+        <tbody>
+          <tr><td>aws-core</td><td>MCP。AWS API の直接実行、公式ドキュメントの検索と取得、リージョン提供状況</td></tr>
+          <tr><td>aws-agents</td><td>MCP。AWS ナレッジの検索。<code>aws-fact-check</code> が「載っていないものを調べる」ときの当て先</td></tr>
+          <tr><td>context7</td><td>MCP。ライブラリの最新ドキュメント。CDK や Vite の書き方を推測せずに引ける</td></tr>
+          <tr><td>superpowers</td><td>skill。<code>brainstorming</code> / <code>writing-plans</code> / <code>subagent-driven-development</code> など。<strong>この基盤自体がこれで設計・実装された</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:1.4rem"><strong>この一覧を作る過程で欠陥が 1 件出た。</strong> CLAUDE.md は「push の前に <code>pre-commit-scrubber</code> を通す」と定めているのに、<strong>スキル本体が手元の個人領域にしか無かった。</strong> 企業リポジトリはテンプレートから <code>.claude/</code> ごとコピーされるので、そちらには付いてこない——<strong>公開事故を防ぐ最も重いルールが環境依存になっていた。</strong> 同日にリポジトリへ入れて解消（skill が 5 本から 6 本になったのはこのため）。</p>
+  </section>
+
+  <section>
+    <h2>いつ、何が発火するか</h2>
+    <p>案件 1 件の流れと、その各段でハーネスが噛む場所。<strong>人が要るのは 3 か所だけ</strong>で、残りはエージェントが通す。</p>
+    <div class="sheet">
+      <pre class="mermaid">
+flowchart TB
+  base["CLAUDE.md ＋ settings.json<br/>ルール / 権限 / プラグイン<br/><small>読み込んだ時点で効いている</small>"]:::base
+  memo["打ち合わせメモ"]:::input
+
+  base -.- memo
+  memo --> nd
+  nd["new-demo（skill）<br/>骨子を決めて、作って、確かめる"]:::skill
+  nd -. 型・指示文・作り方 .-> refs["references/<br/>types / system-prompt / build"]:::ref
+  nd -. AWS を書く前 .-> afc["aws-fact-check（skill）"]:::skill
+  nd --> dq["demo-quality（agent）<br/>拒む設計になっているか"]:::agent
+  dq -->|指摘を直す| nd
+
+  nd --> gate{"承認"}:::human
+  gate --> deploy["cdk deploy<br/>土台 → 案件"]:::act
+  deploy -. 書く前 .-> ir["infra-reviewer（agent）"]:::agent
+  deploy --> web["フロント配信 → ユーザー作成"]:::act
+  web --> check["ブラウザで 3 問を通す"]:::human
+  check --> talk["商談"]:::input
+  talk --> teardown["cdk destroy"]:::act
+  teardown -. 数が合わない .-> cc["cleanup-check（skill）"]:::skill
+
+  check -. 直すたび .-> vr["verify-runbook（skill）<br/>手順書は実行してから書く"]:::skill
+  talk -. 後回しにしたこと .-> fi["file-issue（skill）<br/>GitHub Issue へ"]:::skill
+
+  classDef input  fill:#e2efed,stroke:#0d6b66,stroke-width:1.5px,color:#17222a
+  classDef skill  fill:#ffffff,stroke:#0d6b66,stroke-width:1.5px,color:#17222a
+  classDef agent  fill:#ffffff,stroke:#9d5330,stroke-width:1.5px,color:#17222a
+  classDef ref    fill:#f2f6f5,stroke:#a8bcbb,stroke-dasharray:3 3,color:#4c6a67
+  classDef act    fill:#f2f6f5,stroke:#66787f,color:#17222a
+  classDef human  fill:#fdf0e6,stroke:#9d5330,stroke-width:2px,color:#17222a
+  classDef base   fill:#eef3f3,stroke:#66787f,stroke-width:1.5px,color:#17222a
+      </pre>
+      <p class="sheet-label">実線 = 必ず通る / 破線 = 条件つき / 橙 = 人がやる</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>それぞれが在る理由</h2>
+    <p>ハーネスの原則は「<strong>まだ踏んでいない失敗は 1 つも入れない</strong>」。だから各部品には、それを生んだ事故が対応する。</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>部品</th><th>いつ</th><th>由来した失敗</th></tr></thead>
+        <tbody>
+          <tr><td>new-demo</td><td>メモを受け取った直後</td><td class="origin">「答えてはいけないこと」を聞かずに作り、何でも答えるデモになった</td></tr>
+          <tr><td>aws-fact-check</td><td>AWS を書く前と、変えた後</td><td class="origin">前身で API の形を 7 箇所すべて推測で外した。今日はモデル ID を呼ばずにコミットして 3 回続けて誤診した</td></tr>
+          <tr><td>verify-runbook</td><td>手順書を書くとき</td><td class="origin">前身で README を全部書いてから検証し、6 箇所の欠陥が出た</td></tr>
+          <tr><td>cleanup-check</td><td>撤去後、数が合わないとき</td><td class="origin">User Pool がドメインを持ったまま削除に失敗し、気づかず放置された</td></tr>
+          <tr><td>file-issue</td><td>「次回にしましょう」と決めたとき</td><td class="origin">調べた結果を残さず、次のセッションが同じ AWS を建てて測り直した</td></tr>
+          <tr><td>demo-quality</td><td>クライアントに見せる前</td><td class="origin">拒む条件と探すのをやめる条件が繋がっておらず、山場が丸ごと無効化されていた</td></tr>
+          <tr><td>infra-reviewer</td><td>デプロイ前</td><td class="origin">グローバルに一意な名前を固定し、同一アカウントに 2 つ置けなくなった</td></tr>
+          <tr><td>pre-commit-scrubber</td><td>push の前</td><td class="origin">共有物にクレデンシャルや取引先名が混ざる。<strong>2026-08-15 まで、このスキル自体がリポジトリの外にあった</strong></td></tr>
+          <tr><td>session-context.py</td><td>セッション開始時</td><td class="origin">消し忘れた Harness が課金され続けていることに気づかなかった</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>知識がどこへ溜まるか</h2>
+    <p>2 回目の案件が速かったのは、道具が増えたからではなく、<strong>1 回目で測った値が残っていた</strong>から。ハーネスの本体はこちら側にある。</p>
+    <div class="sheet">
+      <pre class="mermaid">
+flowchart LR
+  fail["踏んだ失敗<br/>測った値"]:::input
+
+  fail --> q1{"何だったか"}:::human
+  q1 -->|AWS の挙動| facts["aws-facts.md<br/><small>再調査不要の実測値</small>"]:::store
+  q1 -->|判断の根拠| dec["DECISIONS.md<br/><small>なぜそう決めたか / 捨てたもの</small>"]:::store
+  q1 -->|同じミスを 2 回| rule["CLAUDE.md / skill<br/><small>1 回目は運が悪かっただけ</small>"]:::store
+  q1 -->|今はやらない| iss["GitHub Issue<br/><small>分かっていることごと</small>"]:::store
+  q1 -->|手順が違った| rb["RUNBOOK.md<br/><small>実行してから書く</small>"]:::store
+
+  facts --> next["次のセッション"]:::input
+  dec --> next
+  rule --> next
+  iss --> next
+  rb --> next
+
+  classDef input fill:#e2efed,stroke:#0d6b66,stroke-width:1.5px,color:#17222a
+  classDef store fill:#ffffff,stroke:#0d6b66,stroke-width:1.5px,color:#17222a
+  classDef human fill:#fdf0e6,stroke:#9d5330,stroke-width:2px,color:#17222a
+      </pre>
+      <p class="sheet-label">溜める先を間違えると、次のセッションが同じ調査を繰り返す</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>今日の棚卸し</h2>
+    <p>ハーネス自身の原則に当てて、<strong>足りないもの 2 件と、古くなったもの 4 件</strong>を直した。</p>
+    <div class="split">
+      <div class="card">
+        <span class="tag tag-add">足した</span>
+        <h3>変えたら、呼んで確かめる</h3>
+        <p>モデル ID が一覧に出ることを確認しただけでコミットし、実際には呼べなかった。原因も測らずに断定して 2 回外した。<strong>参照ファイルは「再調査不要」として読まれるので、誤りを書くのが最も高くつく。</strong></p>
+      </div>
+      <div class="card">
+        <span class="tag tag-add">足した</span>
+        <h3>自分が書いたものは自分でレビューできない</h3>
+        <p>手順書を文脈のないサブエージェントに読ませたら 18 件出て、5 件は手が止まるものだった。<code>cd</code> が 1 つも書かれていないことに、<strong>書いた側は無意識に補完していて気づけない。</strong></p>
+      </div>
+      <div class="card">
+        <span class="tag tag-cut">直した</span>
+        <h3>決着済みを「未解決」と案内していた</h3>
+        <p>要件書 7 章は 7.0 / 7.1 / 7.2 とも決着済み。「どこまでを IaC に載せるかは未決」も同じで、実際に外へ出したのはデモ用のユーザーだけ。</p>
+      </div>
+      <div class="card">
+        <span class="tag tag-cut">直した</span>
+        <h3>ルールが手元の環境に依存していた</h3>
+        <p><code>pre-commit-scrubber</code> がリポジトリの外にあった。<strong>クローンした人には効かない。</strong> 実体を持たせて入れた（元は別のスキル集への symlink で、そのままだと他の環境で壊れる）。</p>
+      </div>
+      <div class="card">
+        <span class="tag tag-cut">直した</span>
+        <h3>フックと権限の理由が失効していた</h3>
+        <p>「構成がまだ決まっていない」が理由だったが、決まった。それでも置かないのは <strong>同じ検査を <code>new-demo</code> が既にやっている</strong>から。許可リストの説明も実態と違っていた。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>育て方</h2>
+    <p><strong>ルールが増える一方なら、それは失敗している。</strong> 速度を出すための基盤なので、ブレーキばかり増やすと目的から遠ざかる。足すときは加速側から足す。</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>起きたこと</th><th>どうするか</th></tr></thead>
+        <tbody>
+          <tr><td>同じミスを 2 回</td><td>ルールか skill にする。1 回目は運が悪かっただけかもしれない</td></tr>
+          <tr><td>仕様を推測して外した</td><td><code>aws-facts.md</code> に実測値を追記する</td></tr>
+          <tr><td>ルールが邪魔をした</td><td><strong>ルールを消す。</strong> 守れないルールを残すと全体が形骸化する</td></tr>
+          <tr><td>2 回守って問題が出ない</td><td>消してよい。効いているか分からないルールを抱えない</td></tr>
+          <tr><td>判断に迷った</td><td><code>DECISIONS.md</code> に理由ごと残す</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:1.4rem"><strong>構造を前提にするルールを書かない。</strong> ディレクトリ名・スクリプト名・ファイル形式に依存する仕組みは、それが決まってから作る。間違った前提を強制する仕組みは、無いより悪い。</p>
+  </section>
+
+  <footer>
+    <p>規模 — CLAUDE.md 177 行 / RUNBOOK.md 708 行 / DECISIONS.md 545 行 / REQUIREMENTS.md 432 行。skill は new-demo 649 行（参照 3 ファイル込み）、aws-fact-check 529 行（実測値の表込み）、verify-runbook 194 行、cleanup-check 153 行、file-issue 119 行。</p>
+    <p>この文書は 2026-08-15 時点。<strong>ハーネスは完成品ではなく初期状態</strong>で、踏むたびに増え、効かないと分かるたびに減る。</p>
+  </footer>
+
+</div>
