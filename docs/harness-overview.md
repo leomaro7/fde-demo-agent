@@ -66,7 +66,6 @@ flowchart TB
   cc["cleanup-check（skill）"]
   vr["verify-runbook（skill）"]
   fi["file-issue（skill）"]
-  ps["production-sketch（skill）<br/>推奨構成・概算・聞くこと"]
 
   base -.- memo
   memo --> nd
@@ -84,8 +83,7 @@ flowchart TB
   teardown -.数が合わない.-> cc
   check -.直すたび.-> vr
   talk -.後回しにしたこと.-> fi
-  ps -.何を聞くか.-> talk
-  talk -.聞き取ってから後日.-> ps
+  talk -.本番の話になったら聞く.-> nd
 
   classDef human fill:#fdf0e6,stroke:#9d5330,stroke-width:2px
   class gate,check human
@@ -108,7 +106,6 @@ flowchart TB
 | `file-issue` | 「次回にしましょう」と決めたとき | 調べた結果を残さず、次のセッションが同じ AWS を建てて測り直した |
 | `pre-commit-scrubber` | push の前 | 共有物にクレデンシャルや取引先名が混ざる。**2026-08-15 まで、このスキル自体がリポジトリの外にあった** |
 | `demo-quality` | クライアントに見せる前 | 拒む条件と探すのをやめる条件が繋がっておらず、山場が丸ごと無効化されていた |
-| `production-sketch` | 商談の前（何を聞くか）と、後（資料を組む）。**その場では出さない** | **実案件ではまだ使っていない**（2026-08-17）。見本の `maint` で 1 件通して作った。そこで踏んだのは、モデル単価を Pricing API から引こうとして 5 経路とも空振りしたこと、MCP 越しの `call_aws` でフィルタのクォートが剥がれたこと、費用の 9 割がモデル利用料だと知らずに他を精密に積みかけたこと。**そして作り終えてから、商談の場で出すという前提自体を覆した**（DECISIONS 2026-08-17） |
 | `infra-reviewer` | インフラを変えた後、デプロイ前 | グローバルに一意な名前を固定し、同一アカウントに 2 つ置けなくなった |
 | `session-context.py` | セッション開始時 | 消し忘れた Harness が課金され続けていることに気づかなかった |
 
@@ -215,18 +212,18 @@ flowchart LR
 
 | | 行数 |
 |---|---|
-| `CLAUDE.md` | 256 |
 | `RUNBOOK.md` | 716 |
-| `docs/DECISIONS.md` | 545 |
+| `new-demo`（参照 3 ファイル込み） | 714 |
+| `aws-fact-check`（実測値と単価表込み） | 665 |
+| `docs/DECISIONS.md` | 608 |
 | `docs/REQUIREMENTS.md` | 435 |
-| `new-demo`（参照 3 ファイル込み） | 649 |
-| `aws-fact-check`（実測値の表込み） | 529 |
+| `CLAUDE.md` | 265 |
 | `verify-runbook` | 194 |
 | `pre-commit-scrubber` | 184 |
 | `cleanup-check` | 153 |
-| `file-issue` | 119 |
+| `file-issue` | 133 |
 | `demo-quality`（agent） | 119 |
+| `session-context.py`（hook） | 100 |
 | `infra-reviewer`（agent） | 87 |
-| `session-context.py`（hook） | 87 |
 
 **ハーネスは完成品ではなく初期状態。** 踏むたびに増え、効かないと分かるたびに減る。

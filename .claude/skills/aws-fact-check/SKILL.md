@@ -1,6 +1,6 @@
 ---
 name: aws-fact-check
-description: このプロジェクトで実測済みの AWS 仕様を引き、未確定のものを推測せずに確かめる。bedrock-agentcore-control / CreateHarness / InvokeHarness / harnessName / runtimeSessionId / customJWTAuthorizer / claimMatchOperator / agentcore_code_interpreter / inline_function / Cognito Hosted UI ドメイン / Amplify CreateBranch / Transaction Search のいずれかに触れるときは必ず最初に使う。references/aws-facts.md に実測値があるので再調査は不要。載っていないものだけ --generate-cli-skeleton で確認する。
+description: このプロジェクトで実測済みの AWS 仕様を引き、未確定のものを推測せずに確かめる。bedrock-agentcore-control / CreateHarness / InvokeHarness / harnessName / runtimeSessionId / customJWTAuthorizer / claimMatchOperator / agentcore_code_interpreter / inline_function / Cognito Hosted UI ドメイン / Amplify CreateBranch / Transaction Search のいずれかに触れるときは必ず最初に使う。references/aws-facts.md に実測値があるので再調査は不要。載っていないものだけ --generate-cli-skeleton で確認する。AWS の料金・単価・費用の概算を出すときも使う（references/pricing-tokyo.md に東京の実測単価と Pricing API の引き方があり、モデル利用料だけは API から引けないことも記録してある）。
 ---
 
 # AWS API の形状を確認する
@@ -9,6 +9,10 @@ description: このプロジェクトで実測済みの AWS 仕様を引き、�
 
 **[references/aws-facts.md](references/aws-facts.md) に、実測で確定した仕様がある。**
 AgentCore Harness・Cognito・Amplify の 25 項目ほどと、event stream のフレーム構造。
+
+**料金は [references/pricing-tokyo.md](references/pricing-tokyo.md)。** 東京の単価と、
+Pricing API の引き方。**Bedrock のモデル利用料だけは API から引けない**ことも
+そこに書いてある（5 経路試して確認済み）。
 
 **ここに載っているものは再調査しない。** 載っていないものだけ、以下の手順で確認する。
 新しく確定したものは同ファイルに追記する。

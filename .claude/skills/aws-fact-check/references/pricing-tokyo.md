@@ -3,8 +3,35 @@
 **2026-08-17 に AWS Pricing API から取得。** 料金表の版は `publicationDate 2026-08-14`、
 適用開始は `2026-08-01`。**半年以上経っていたら引き直すこと。**
 
-引き方は `SKILL.md` の「金額を引く」にある。`--region us-east-1` 固定、
-usagetype の `APN1-` 接頭辞で東京を引く。
+## 引き方
+
+**MCP の `call_aws` は使わない。** スペースを含むフィルタ値でクォートが剥がれて弾かれる
+（`Value=Claude Sonnet 4.5` が `Sonnet` で切れて `Expected: '=', received: 'EOF'`）。
+**ローカルの `aws` CLI を使う。** 作業ディレクトリはどこでもよい。
+
+```bash
+aws pricing get-products --service-code <サービスコード> \
+  --filters "Type=TERM_MATCH,Field=usagetype,Value=<usagetype>" \
+  --region us-east-1 --output json | grep -o 'description[^,]*'
+```
+
+**`--region us-east-1` は固定。** Pricing API 自体の置き場所であって、調べる対象の
+リージョンではない。東京の値は usagetype の `APN1-` 接頭辞で引く。
+
+usagetype が分からないときは先に一覧を出す。
+
+```bash
+aws pricing get-attribute-values --service-code <サービスコード> \
+  --attribute-name usagetype --region us-east-1 --output text | grep APN1
+```
+
+サービスコード自体が分からないときは一覧から探す。
+
+```bash
+aws pricing describe-services --region us-east-1 --output text | grep -i <サービス名>
+```
+
+**見つからないものを推測で書かない。** 引けなければ「未確認」と残す。
 
 ---
 
