@@ -76,10 +76,23 @@ def main() -> int:
         value = run(args)
         counts.append(f"{label} {value if value is not None else '?'}")
 
-    emit(
-        f"AWS: {who} @ {REGION} / " + " · ".join(counts) + "\n"
-        "Harness は課金対象。想定より多ければ cleanup-check スキルで差分を特定すること。"
-    )
+    lines = [
+        f"AWS: {who} @ {REGION} / " + " · ".join(counts),
+        "Harness は課金対象。想定より多ければ cleanup-check スキルで差分を特定すること。",
+    ]
+
+    # 先送りにした課題は GitHub Issue に置いてある（file-issue スキル）。
+    # **入口で出さないと読まれない。** CLAUDE.md の一覧に書くだけでは、
+    # 作業を始めた後に思い出されない（2026-08-15 に infra-reviewer で踏んだ形）。
+    issues = run(["gh", "issue", "list", "--state", "open", "--limit", "5",
+                  "--json", "number,title",
+                  "--jq", '.[] | "#\\(.number) \\(.title)"'])
+    if issues:
+        lines.append("開いている課題（`gh issue view <番号>` に、そこまでに分かったことがある）:")
+        # run() が strip するので、字下げはここで付ける（1 行目だけ揃わなくなる）
+        lines.extend("  " + line for line in issues.splitlines())
+
+    emit("\n".join(lines))
     return 0
 
 
