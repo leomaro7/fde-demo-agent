@@ -46,7 +46,7 @@
 | [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md) | 設計判断をするとき。4 章に要件、5 章に設計原則、7 章は**決着済みの論点と、その経緯** |
 | [.claude/skills/aws-fact-check/references/aws-facts.md](.claude/skills/aws-fact-check/references/aws-facts.md) | AWS を触るとき。実測済みの仕様。**再調査不要** |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 「なぜこうなっているのか」を追うとき |
-| [docs/harness-overview.html](docs/harness-overview.html) | **ハーネスの全体像**（図つき）。何がどこで発火し、なぜ在るのか。**直したらここも直す** |
+| [docs/harness-overview.md](docs/harness-overview.md) | **ハーネスの全体像**（図つき）。何がどこで発火し、なぜ在るのか。**直したらここも直す** |
 | GitHub の Issue（`gh issue list`） | 次に何をやるかを決めるとき。**先送りにした課題と、そこまでに分かったこと** |
 
 ---
