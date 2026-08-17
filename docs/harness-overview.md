@@ -66,6 +66,7 @@ flowchart TB
   cc["cleanup-check（skill）"]
   vr["verify-runbook（skill）"]
   fi["file-issue（skill）"]
+  ps["production-sketch（skill）<br/>推奨構成・概算・聞くこと"]
 
   base -.- memo
   memo --> nd
@@ -83,6 +84,7 @@ flowchart TB
   teardown -.数が合わない.-> cc
   check -.直すたび.-> vr
   talk -.後回しにしたこと.-> fi
+  talk -.本番の話になったら.-> ps
 
   classDef human fill:#fdf0e6,stroke:#9d5330,stroke-width:2px
   class gate,check human
@@ -105,6 +107,7 @@ flowchart TB
 | `file-issue` | 「次回にしましょう」と決めたとき | 調べた結果を残さず、次のセッションが同じ AWS を建てて測り直した |
 | `pre-commit-scrubber` | push の前 | 共有物にクレデンシャルや取引先名が混ざる。**2026-08-15 まで、このスキル自体がリポジトリの外にあった** |
 | `demo-quality` | クライアントに見せる前 | 拒む条件と探すのをやめる条件が繋がっておらず、山場が丸ごと無効化されていた |
+| `production-sketch` | デモの後、本番の話になったとき | **実案件ではまだ使っていない**（2026-08-17）。見本の `maint` で 1 件通して作った。そこで踏んだのは、モデル単価を Pricing API から引こうとして 4 経路とも空振りしたこと、MCP 越しの `call_aws` でフィルタのクォートが剥がれたこと、費用の 9 割がモデル利用料だと知らずに他を精密に積みかけたこと |
 | `infra-reviewer` | インフラを変えた後、デプロイ前 | グローバルに一意な名前を固定し、同一アカウントに 2 つ置けなくなった |
 | `session-context.py` | セッション開始時 | 消し忘れた Harness が課金され続けていることに気づかなかった |
 

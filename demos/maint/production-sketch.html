@@ -1,0 +1,669 @@
+<title>保全アシスタント 本番構成</title>
+
+<style>
+  :root {
+    --ground: #f6f8f7;
+    --panel: #ffffff;
+    --ink: #12201e;
+    --ink-soft: #4a5c59;
+    --ink-faint: #7a8b88;
+    --rule: #d3ded9;
+    --rule-strong: #adbfba;
+    --accent: #0f766e;
+    --accent-wash: #e4f0ed;
+    --flag: #a8560a;
+    --flag-wash: #f8ece0;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+    --sans: "Hiragino Sans", "Yu Gothic Medium", "Noto Sans JP", system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1614;
+      --panel: #141f1d;
+      --ink: #dde8e5;
+      --ink-soft: #9aaca8;
+      --ink-faint: #6d7f7b;
+      --rule: #24322f;
+      --rule-strong: #3a4b47;
+      --accent: #4fb8a5;
+      --accent-wash: #16302c;
+      --flag: #d9974b;
+      --flag-wash: #2c2317;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0d1614;
+    --panel: #141f1d;
+    --ink: #dde8e5;
+    --ink-soft: #9aaca8;
+    --ink-faint: #6d7f7b;
+    --rule: #24322f;
+    --rule-strong: #3a4b47;
+    --accent: #4fb8a5;
+    --accent-wash: #16302c;
+    --flag: #d9974b;
+    --flag-wash: #2c2317;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.9;
+    margin: 0;
+    padding: 0 20px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header.masthead {
+    padding: 64px 0 32px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-size: clamp(30px, 5vw, 42px);
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+
+  .standfirst {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  section { margin-top: 56px; }
+
+  h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    margin: 0 0 24px;
+  }
+
+  h3 {
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-wrap: balance;
+    margin: 40px 0 12px;
+  }
+
+  h3:first-of-type { margin-top: 0; }
+
+  p { margin: 0 0 18px; max-width: 68ch; }
+
+  strong { font-weight: 700; }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-wash);
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+
+  .callout > :last-child { margin-bottom: 0; }
+
+  .callout.flag { border-left-color: var(--flag); background: var(--flag-wash); }
+
+  figure {
+    margin: 32px 0;
+    padding: 26px 22px 18px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+
+  figure svg { display: block; width: 100%; max-width: 100%; height: auto; min-width: 620px; }
+
+  figcaption {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font-size: 14px;
+    color: var(--ink-soft);
+    min-width: 620px;
+  }
+
+  .tablewrap { overflow-x: auto; margin: 26px 0; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14.5px;
+    min-width: 560px;
+  }
+
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 13px 16px 13px 0;
+    border-bottom: 1px solid var(--rule);
+    line-height: 1.7;
+  }
+
+  th {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--rule-strong);
+    padding-bottom: 9px;
+  }
+
+  td.num, th.num {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    padding-right: 0;
+    white-space: nowrap;
+  }
+
+  tr.total td {
+    border-top: 2px solid var(--ink);
+    border-bottom: none;
+    font-weight: 700;
+    padding-top: 15px;
+  }
+
+  .ask { border-top: 1px solid var(--rule); padding: 26px 0 4px; }
+  .ask:first-of-type { border-top: none; padding-top: 0; }
+
+  .ask-n {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+
+  .ask-q {
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin: 6px 0 14px;
+    text-wrap: balance;
+  }
+
+  .ask dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; }
+
+  .ask dt {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-top: 5px;
+    white-space: nowrap;
+  }
+
+  .ask dd { margin: 0; font-size: 15px; color: var(--ink-soft); }
+
+  ul { padding-left: 1.1em; margin: 0 0 18px; max-width: 68ch; }
+  li { margin-bottom: 8px; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--accent-wash);
+    padding: 2px 5px;
+  }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--flag);
+    color: var(--flag);
+    vertical-align: middle;
+    margin-left: 8px;
+  }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 26px;
+    border-top: 2px solid var(--ink);
+    font-size: 13.5px;
+    color: var(--ink-faint);
+  }
+
+  @media (max-width: 620px) {
+    body { padding: 0 16px 64px; font-size: 15.5px; }
+    header.masthead { padding-top: 40px; }
+    .ask dl { grid-template-columns: 1fr; gap: 2px; }
+    .ask dt { padding-top: 12px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">本番構成スケッチ / 商談用</p>
+    <h1>いま見ていただいたものを、<br>本番にするとどうなるか</h1>
+    <p class="standfirst">サンプル食品株式会社さま・設備保全アシスタント。デモは同日中にお見せするため、意図的に落としている部分があります。この 1 枚は、その落とした部分を埋めると何が要るのか、いくらになるのかを整理したものです。</p>
+    <div class="meta">
+      <span>2026-08-17 時点</span>
+      <span>ap-northeast-1（東京）</span>
+      <span>デモ slug: maint</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>はじめに / 前提</h2>
+    <p>この資料の金額と構成は、<strong>後半に書いた利用規模を仮に置いた場合</strong>のものです。規模が変われば金額は比例して動きます。実際の構成を固めるには <strong>5 つのことをうかがう必要があり</strong>、それは「聞くこと」にまとめてあります。</p>
+    <p>デモの構成をそのまま本番と呼ぶことはしません。<strong>デモは「触って判断していただく」ことだけを目的に組んであり</strong>、実データ・可用性・監査といった本番の要件は最初から外してあります。外した理由もあわせて書きます。</p>
+  </section>
+
+  <section>
+    <h2>1 — 今日お見せした構成</h2>
+
+    <figure>
+      <svg viewBox="0 0 800 250" role="img" aria-label="デモ構成。ブラウザの中にツール実装とダミーデータが同居し、AgentCore Harness とツール呼び出しを往復している。AWS 側に業務データは存在しない。">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/>
+          </marker>
+        </defs>
+
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="16" y="42" width="228" height="164"/>
+          <rect x="392" y="72" width="176" height="72"/>
+          <rect x="640" y="72" width="144" height="72"/>
+        </g>
+
+        <g fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3">
+          <rect x="34" y="96" width="192" height="42"/>
+          <rect x="34" y="148" width="192" height="42"/>
+        </g>
+
+        <g fill="currentColor" font-family="ui-monospace, monospace" font-size="10.5" letter-spacing="0.08em">
+          <text x="16" y="32">ブラウザ（Amplify 配信の静的ページ）</text>
+          <text x="392" y="62">AWS / 東京</text>
+        </g>
+
+        <g fill="currentColor" font-size="13" font-family="system-ui, sans-serif">
+          <text x="30" y="76">画面と会話</text>
+          <text x="46" y="122">ツールの実装</text>
+          <text x="46" y="174">記録データ（ダミー）</text>
+          <text x="406" y="104">AgentCore</text>
+          <text x="406" y="124">Harness</text>
+          <text x="654" y="104">Claude Sonnet 4.5</text>
+          <text x="654" y="124">jp. プロファイル</text>
+        </g>
+
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="244" y1="94" x2="386" y2="94" marker-end="url(#ar)"/>
+          <line x1="568" y1="108" x2="634" y2="108" marker-end="url(#ar)"/>
+        </g>
+
+        <g stroke="#0f766e" stroke-width="1.5" fill="none">
+          <path d="M 392 128 L 300 128 L 300 160 L 244 160" marker-end="url(#ar-a)"/>
+          <path d="M 244 186 L 330 186 L 330 142 L 392 142" marker-end="url(#ar-a)"/>
+        </g>
+
+        <g font-size="11" font-family="system-ui, sans-serif">
+          <text x="252" y="88" fill="currentColor">質問 ＋ JWT</text>
+          <text x="576" y="102" fill="currentColor">推論</text>
+          <text x="252" y="122" fill="#0f766e">「この記録を検索して」</text>
+          <text x="252" y="210" fill="#0f766e">検索結果を返す</text>
+        </g>
+
+        <g fill="currentColor" font-size="11.5" font-family="system-ui, sans-serif" opacity="0.75">
+          <text x="16" y="232">業務データは AWS 側に一切置いていない。ツールもブラウザの中で動いている。</text>
+        </g>
+      </svg>
+      <figcaption>デモでは、検索ツールもデータもブラウザの中にあります。AgentCore Harness は「この語で検索して」と指示を返すだけで、実行はブラウザ側。<strong>AWS 側に業務データが存在しない</strong>ため、NDA もセキュリティ審査も待たずに当日お見せできました。</figcaption>
+    </figure>
+
+    <p>この形には、狙って選んだ利点があります。データを 1 件も預からずに、動くものを見ていただける。逆に言えば、<strong>ここが本番にそのまま持ち越せない一点</strong>です。実際の保全記録をブラウザに配ることはできません。</p>
+
+    <div class="callout">
+      <p>デモで意図的に落としてあるもの — <strong>実データの取り込み / VPC / 可用性・負荷対策 / 監査ログ / ID 基盤との連携</strong>。いずれも「作れないから」ではなく、<strong>当日お見せするために外した</strong>ものです。次の節で埋め直します。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 — 推奨する本番構成</h2>
+
+    <figure>
+      <svg viewBox="0 0 800 330" role="img" aria-label="本番推奨構成。ツールの実装とデータがブラウザから AgentCore Gateway の背後へ移り、社内 ID 基盤との連携と監査ログが加わる。デモから変わる部分を強調表示している。">
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ar2-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/>
+          </marker>
+        </defs>
+
+        <g fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="16" y="44" width="168" height="62"/>
+          <rect x="300" y="44" width="176" height="62"/>
+          <rect x="592" y="44" width="192" height="62"/>
+          <rect x="16" y="160" width="168" height="62"/>
+        </g>
+
+        <g fill="none" stroke="#0f766e" stroke-width="2">
+          <rect x="300" y="160" width="176" height="62"/>
+          <rect x="300" y="252" width="176" height="62"/>
+          <rect x="592" y="160" width="192" height="62"/>
+        </g>
+
+        <g fill="currentColor" font-size="13" font-family="system-ui, sans-serif">
+          <text x="30" y="72">ブラウザ</text>
+          <text x="30" y="92">（画面だけ）</text>
+          <text x="314" y="72">AgentCore</text>
+          <text x="314" y="92">Harness</text>
+          <text x="606" y="72">Claude Sonnet 4.5</text>
+          <text x="606" y="92">jp. プロファイル</text>
+          <text x="30" y="188">Cognito</text>
+          <text x="30" y="208">＋ 社内 ID 基盤</text>
+        </g>
+
+        <g fill="#0f766e" font-size="13" font-family="system-ui, sans-serif">
+          <text x="314" y="188">AgentCore Gateway</text>
+          <text x="314" y="208">（検索ツール）</text>
+          <text x="314" y="280">保全記録（実データ）</text>
+          <text x="314" y="300">所在は要確認</text>
+          <text x="606" y="188">CloudWatch</text>
+          <text x="606" y="208">ログ / トレース</text>
+        </g>
+
+        <g stroke="currentColor" stroke-width="1.5" fill="none">
+          <line x1="184" y1="75" x2="294" y2="75" marker-end="url(#ar2)"/>
+          <line x1="476" y1="75" x2="586" y2="75" marker-end="url(#ar2)"/>
+          <path d="M 100 160 L 100 112" marker-end="url(#ar2)"/>
+        </g>
+
+        <g stroke="#0f766e" stroke-width="2" fill="none">
+          <line x1="388" y1="106" x2="388" y2="154" marker-end="url(#ar2-a)"/>
+          <line x1="388" y1="222" x2="388" y2="246" marker-end="url(#ar2-a)"/>
+          <path d="M 476 90 L 534 90 L 534 190 L 586 190" marker-end="url(#ar2-a)"/>
+        </g>
+
+        <g font-size="11" font-family="system-ui, sans-serif">
+          <text x="192" y="69" fill="currentColor">質問 ＋ JWT</text>
+          <text x="484" y="69" fill="currentColor">推論</text>
+          <text x="106" y="140" fill="currentColor">認証</text>
+          <text x="396" y="134" fill="#0f766e">ツール呼び出し</text>
+          <text x="396" y="242" fill="#0f766e">検索</text>
+          <text x="540" y="130" fill="#0f766e">全対話を記録</text>
+        </g>
+
+        <g font-family="ui-monospace, monospace" font-size="10.5" letter-spacing="0.08em">
+          <text x="16" y="34" fill="currentColor">デモから変わらない部分</text>
+          <text x="300" y="150" fill="#0f766e">新しく要るもの</text>
+        </g>
+      </svg>
+      <figcaption>色がついている部分だけが、デモから増えるものです。<strong>ブラウザは画面の表示に専念し、ツールとデータは AWS 側へ移ります。</strong>Harness とモデルの部分は、デモでお見せしたものがそのまま本番でも使えます。</figcaption>
+    </figure>
+
+    <p>変える箇所は 6 つです。<strong>足さないと決めた行も 1 つ入れてあります</strong>——必要のないものを積むと、費用も納期も理由なく膨らむためです。</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:27%">今日のデモ</th>
+            <th style="width:33%">本番でのご提案</th>
+            <th>そうする理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>検索ツールがブラウザの中で動く</td>
+            <td>AgentCore Gateway の背後に移す</td>
+            <td>実データをブラウザに配ることはできないため。ここが最大の変更点です</td>
+          </tr>
+          <tr>
+            <td>ダミーの記録を画面に同梱</td>
+            <td>実際の保全記録に接続</td>
+            <td>所在と更新方法によって方式が変わります（聞くこと 1）</td>
+          </tr>
+          <tr>
+            <td>ログイン用のユーザーを手作業で発行</td>
+            <td>社内 ID 基盤と連携（SAML / OIDC）</td>
+            <td>入退社のたびに二重管理すると、必ず消し忘れが出るため</td>
+          </tr>
+          <tr>
+            <td>VPC なし</td>
+            <td>社内システムに接続する場合のみ VPC</td>
+            <td>接続先が社内にあるかどうかで決まります（聞くこと 3）</td>
+          </tr>
+          <tr>
+            <td>ログを残していない</td>
+            <td>対話とツール呼び出しを CloudWatch に保持</td>
+            <td>誤りに気づき、後から追えるようにするため（聞くこと 5）</td>
+          </tr>
+          <tr>
+            <td>キーワードの完全一致で検索</td>
+            <td><strong>変更しません</strong></td>
+            <td>設備名とエラーコードで引く用途には、これで足ります。ベクトル検索は今回必須ではありません</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>3 — 聞くこと</h2>
+    <p>ここから先は、うかがわないと決められません。順番は、<strong>構成と費用への効き方が大きい順</strong>です。</p>
+
+    <div class="ask">
+      <p class="ask-n">問 1</p>
+      <p class="ask-q">保全記録はいま、どこにあって、誰が更新していますか。</p>
+      <dl>
+        <dt>決まるもの</dt>
+        <dd>データ連携の方式と、初期構築の工期</dd>
+        <dt>分かれ方</dt>
+        <dd>基幹システムの中 → VPC 経由で接続。ファイルサーバや Excel → 日次で同期。紙や個人のメモ → <strong>電子化が先に必要</strong>で、本番化の前段が別途要ります</dd>
+      </dl>
+    </div>
+
+    <div class="ask">
+      <p class="ask-n">問 2</p>
+      <p class="ask-q">月に何件くらい、何人が使う想定ですか。</p>
+      <dl>
+        <dt>決まるもの</dt>
+        <dd>月額のほぼ全部。後述のとおり費用の 9 割はモデルの利用料で、これは問い合わせ件数にほぼ比例します</dd>
+        <dt>分かれ方</dt>
+        <dd>月数百件 → 使った分だけの従量課金のまま。常時高負荷 → 定額の予約枠に切り替えたほうが安くなります</dd>
+      </dl>
+    </div>
+
+    <div class="ask">
+      <p class="ask-n">問 3</p>
+      <p class="ask-q">社内ネットワークからだけ使いますか。現場のスマートフォンからも使いますか。</p>
+      <dl>
+        <dt>決まるもの</dt>
+        <dd>VPC の要否、通信経路、追加の防御</dd>
+        <dt>分かれ方</dt>
+        <dd>社内のみ → VPC 接続と経路の設計が加わります。現場から → インターネット公開のまま、アクセス制限を別途</dd>
+      </dl>
+    </div>
+
+    <div class="ask">
+      <p class="ask-n">問 4</p>
+      <p class="ask-q">ログインは、既存のどの仕組みを使いますか。</p>
+      <dl>
+        <dt>決まるもの</dt>
+        <dd>ID 連携の作り込みと、日々の運用負荷</dd>
+        <dt>分かれ方</dt>
+        <dd>Entra ID などがある → 連携するだけ。無い → 利用者の登録・削除を誰が担うかを決める必要があります</dd>
+      </dl>
+    </div>
+
+    <div class="ask">
+      <p class="ask-n">問 5</p>
+      <p class="ask-q">回答が間違っていたとき、誰がどうやって気づきますか。</p>
+      <dl>
+        <dt>決まるもの</dt>
+        <dd>ログの保持期間、確認の導線、記録の見直し方</dd>
+        <dt>分かれ方</dt>
+        <dd>デモでお見せした「二次エスカレーションが必要です」と答える場面は、<strong>回付先が実在して初めて意味を持ちます</strong>。宛先と、その先の運用をあわせて決める必要があります</dd>
+      </dl>
+    </div>
+
+    <div class="callout flag">
+      <p><strong>そしてもう 1 問、打ち合わせでは話題に出にくいものがあります。</strong></p>
+      <p class="ask-q" style="margin-top:10px">この記録を、これから誰が書き続けますか。</p>
+      <p>デモは、記録が十分に揃っている前提で動いています。実際には、<strong>記録が更新されなくなった時点でこの仕組みは静かに使われなくなります</strong>。半年後に「最近あたらない」と言われる原因のほとんどがここです。導入と同時に、誰がどのタイミングで記録を追加するのかを決めておくことをお勧めします。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>4 — 費用の概算</h2>
+
+    <p>下の金額は <strong>次の前提を置いた場合</strong>のものです。前提が変われば金額も変わります。</p>
+
+    <ul>
+      <li>保全課 30 名が利用（月あたりの利用者数 30）</li>
+      <li>問い合わせ <strong>月 500 件</strong></li>
+      <li>1 件につきモデルを 2 回呼ぶ（記録を検索 → 結果を読んで回答）</li>
+      <li>1 件あたりの入力 約 11,000 トークン、出力 約 600 トークン（<strong>多めに見た値</strong>。実際の往復では 7,000 前後になる見込みで、その場合は下振れします）</li>
+      <li>1 件あたりの応答時間 約 60 秒</li>
+    </ul>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:44%">項目</th>
+            <th>算出のもと</th>
+            <th class="num">月額 USD</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>モデル利用料<span class="pill">要確認</span></td>
+            <td>入力 5.5M ＋ 出力 0.3M トークン</td>
+            <td class="num">23.10</td>
+          </tr>
+          <tr>
+            <td>Harness の実行時間</td>
+            <td>CPU 1.7 時間 ＋ メモリ 8.3 GB時</td>
+            <td class="num">0.23</td>
+          </tr>
+          <tr>
+            <td>会話の保持</td>
+            <td>短期 3,000 件 ＋ 長期 500 件</td>
+            <td class="num">1.38</td>
+          </tr>
+          <tr>
+            <td>ログイン基盤</td>
+            <td>30 名 × Essentials</td>
+            <td class="num">0.45</td>
+          </tr>
+          <tr>
+            <td>画面の配信</td>
+            <td>転送 1 GB</td>
+            <td class="num">0.15</td>
+          </tr>
+          <tr>
+            <td>ログとトレース</td>
+            <td>取り込み 0.5 GB ＋ 保存 ＋ トレース</td>
+            <td class="num">0.40</td>
+          </tr>
+          <tr class="total">
+            <td>合計</td>
+            <td>上記前提のとき</td>
+            <td class="num">約 25.7</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>費用のほぼ全部がモデル利用料です。</strong>他をいくら削っても月 3 ドル以下しか動きません。裏を返せば、<strong>問い合わせ件数と、1 回あたりに読ませる記録の量</strong>で総額が決まります。問 2 をうかがいたいのはこのためです。</p>
+
+    <p>件数が 10 倍（月 5,000 件・100 名）になると、月額はおよそ <strong>250 ドル</strong>になります。ほぼ比例します。</p>
+
+    <div class="callout">
+      <p><strong>下げられる余地について。</strong>毎回同じ指示文を送っている部分は、モデル側のキャッシュが効けば入力分を大きく圧縮できます。今回の構成でそれが自動的に効くかは<strong>まだ確認できていません</strong>ので、金額には織り込んでいません。効いた場合は下振れします。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>5 — この資料で確認できていないこと</h2>
+
+    <p>正確に線を引いておきます。<strong>推測で埋めた数字はありません。</strong></p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34%">項目</th>
+            <th>状態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>モデル利用料の東京単価</td>
+            <td><strong>未確認。</strong>表の 23.10 ドルは<strong>オレゴンリージョンの実測単価</strong>（入力 3.30 / 出力 16.50 ドル per 100万トークン）で計算したものです。東京の単価は AWS の料金 API に掲載がなく、料金ページからも取得できませんでした。<strong>正式なご提示の前に確認してお返しします</strong></td>
+          </tr>
+          <tr>
+            <td>モデル以外の単価</td>
+            <td>すべて東京リージョンの実測値（2026-08-17 取得）。Harness・会話の保持・ログイン・配信・ログの各単価は AWS の料金 API から直接引いています</td>
+          </tr>
+          <tr>
+            <td>指示文のキャッシュ</td>
+            <td>未確認。効けば入力分が下がりますが、織り込んでいません</td>
+          </tr>
+          <tr>
+            <td>構築の費用と期間</td>
+            <td>この資料には含めていません。構成が固まってからお出しします</td>
+          </tr>
+          <tr>
+            <td>可用性・災害対策</td>
+            <td>未検討。停止が業務に与える影響をうかがったうえで設計します</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <p>本資料の構成・金額は、上に明記した前提と未確認事項の範囲でお読みください。金額は AWS の利用料のみで、構築費用および運用費用は含みません。<br>作成 2026-08-17 / 対象リージョン ap-northeast-1</p>
+  </footer>
+
+</div>
