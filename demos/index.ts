@@ -30,8 +30,7 @@ export interface DemoEntry {
  * - smoke: 土台の検証用。最小構成
  * - sales: データ分析型。Code Interpreter、傾向の仕込み方
  * - hr:    ナレッジ判断型。ツール 2 つ、escalated による拒否
- * - maint: 検索・照合型。ツール 1 つ、二次エスカレーション記録 + 質問文の事実の
- *          2 系統で拒む。`docs/sample-meeting-note.md` から `new-demo` で起こした
+ * - maint: 検索・照合型。ツール 1 つ、在庫・点検予定という「話題そのもの」による拒否
  *
  * **企業リポジトリを作ったら、この 4 件は消す**（RUNBOOK 1.6）。
  * 書き方を参照したいときは土台リポジトリを見る。テンプレート化はしない

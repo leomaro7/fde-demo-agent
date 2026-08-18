@@ -104,6 +104,7 @@
     "aws-core@claude-plugins-official": true,
     "aws-agents@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "context7@claude-plugins-official": true
+    "context7@claude-plugins-official": true,
+    "deploy-on-aws@agent-plugins-for-aws": true
   }
 }
