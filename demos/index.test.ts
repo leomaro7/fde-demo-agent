@@ -30,7 +30,7 @@ describe('demos', () => {
 });
 
 describe('pickDemo', () => {
-  // 案件名を書かない。企業リポジトリでは見本を消すので（RUNBOOK 2 章）、
+  // 案件名を書かない。企業リポジトリでは見本を消すので（RUNBOOK 4.4）、
   // 書くと消した瞬間に落ちる。実際に落ちた（2026-08-14）
   it('登録されている案件は slug で引ける', () => {
     for (const slug of Object.keys(demos)) {

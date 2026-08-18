@@ -75,7 +75,7 @@ description: 打ち合わせメモから案件デモを作り、デプロイの�
 
 ### 3. 型を選ぶ
 
-**[references/types.md](references/types.md) を読む。** 4 つの型ごとに、
+**[references/types.md](references/types.md) を読む。** 3 つの型ごとに、
 ツールの構成・seed の形・仕込み方が違う。
 
 型が決まると、ツールの数と seed の作りがほぼ決まる。

@@ -65,27 +65,32 @@ aws bedrock-agentcore-control list-harnesses --region $AWS_REGION \
 
 ### 4. 管理外のリソースを見分ける
 
-**タグの有無だけで判定してはいけない。** このプロジェクトは「土台は CDK、
-案件は SDK スクリプト」という分担なので、**案件リソースは設計上 CloudFormation の
-タグを持たない**。タグだけで見ると、正常に作られた案件リソースが全部
-「管理外」に出て、報告が使い物にならなくなる。
+**タグの有無だけで判定してはいけない。** 要件書 7.0 の決着以降、**土台も案件も
+CDK が持つ**（CLAUDE.md「それ以外は全部 CDK に載っている」）。Harness・Cognito
+グループ・Amplify ブランチはどれも `DemoStack` のリソースとして
+`aws:cloudformation:stack-name` タグを持つのが正常な状態である。
 
-3 つに分けて判定する。
+**IaC の外にあるのはデモ用ユーザー 1 種類だけ**（Cognito のユーザーそのもの。
+パスワードを設定する手段が CloudFormation に無いため。CLAUDE.md 参照）。
+この手順の対象（Harness / User Pool / Amplify アプリ）にユーザーは含まれないので、
+実質的にはタグの有無でそのまま判定してよい。
+
+2 つに分けて判定する。
 
 | 分類 | 見分け方 |
 |---|---|
-| **IaC 管理（土台）** | `aws:cloudformation:stack-name` タグを持つ |
-| **想定内（案件）** | タグは無いが、リポジトリにある案件の一覧と対応する |
-| **管理外** | どちらでもない |
+| **IaC 管理（土台・案件とも）** | `aws:cloudformation:stack-name` タグを持つ |
+| **管理外** | 持たない |
 
 ```bash
-# 土台のスタックが持つリソースを正とする
+# 各スタック（土台・案件とも）が持つリソースを正とする
 aws cloudformation list-stack-resources --stack-name <name> --region "$AWS_REGION" \
   --query 'StackResourceSummaries[].PhysicalResourceId' --output text
 ```
 
-案件の一覧は**リポジトリから取る**。どこに置かれるかは構成次第なので、
-その時点のディレクトリ構成を見て判断する。
+**タグを持たないのに残っているものが見つかったら、まず「画面から手作りされていないか」
+を疑う。** 案件が今リポジトリに何件あるか（`ls demos`）は、期待される案件スタックの数を
+見積もる材料にはなるが、個々のリソースが管理内かどうかの判定には使わない。
 
 **リソース名の prefix をハードコードしない。** CLAUDE.md は「グローバルに一意な
 名前は可変にする」「IAM ロール名はそもそも指定しない」と定めており、

@@ -21,7 +21,7 @@
 |---|---|
 | `infra/` | 土台スタックと案件スタック（CDK） |
 | `web/` | 会話とトレースの画面、Harness クライアント、ツールループ、ログイン |
-| `demos/` | **型ごとの見本**（`smoke` / `sales` / `hr`）。商談用ではない。企業リポジトリでは消す |
+| `demos/` | **土台検証用（`smoke`）+ 型ごとの見本**（`sales` / `hr` / `maint`）。商談用ではない。企業リポジトリでは消す |
 | `scripts/` | 設定の取り出し、Amplify への配信、Harness の実測 |
 
 **AWS には何も残っていない**（撤去まで検証したため）。作るには RUNBOOK の 3 章から。
@@ -148,7 +148,8 @@ UI と AWS 呼び出しは通し確認。自動テストに時間をかけるよ
 | `demo-quality`（agent） | 案件を作った後、クライアントに見せる前 |
 
 フックは 1 つだけ（`.claude/hooks/session-context.py`）。セッション開始時に、
-今どの AWS アカウントにいて Harness / UserPool / Amplify が何件動いているかを出す。
+今どの AWS アカウントにいて Harness / UserPool / Amplify が何件動いているかと、
+開いている GitHub Issue（`file-issue` が起票したもの）を出す。
 
 **コミット前の検査と案件の検証フックは、置いていない。** 構成は決まったので
 作れるようになったが、**同じ検査を `new-demo` が既にやっている**（`tsc` / `npm test` /

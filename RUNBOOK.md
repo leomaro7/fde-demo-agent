@@ -345,13 +345,15 @@ npx cdk list -c instance=<instance>
 | `npm test` | **失敗が 0 件**なら OK。件数は増えるので数えない |
 | `cdk list` | 一覧に `FdeDemo-<instance>-<slug>` が出れば、登録表が CDK 側に効いている |
 
-`cdk list` の出力はこうなる（見本 3 件 + 追加した案件）。
+`cdk list` の出力はこうなる（見本 4 件 + 追加した案件。見本は増えていることがあるので、
+実際の件数は `ls demos` で確かめること）。
 
 ```
 FdeDemo-<instance>-Foundation
 FdeDemo-<instance>-smoke
 FdeDemo-<instance>-sales
 FdeDemo-<instance>-hr
+FdeDemo-<instance>-maint
 FdeDemo-<instance>-<slug>
 ```
 
@@ -399,10 +401,11 @@ npx cdk deploy FdeDemo-<instance>-<slug> -c instance=<instance> --require-approv
 ls demos
 ```
 
-**自分の案件以外**を消す。
+**自分の案件以外**を消す。今日時点の見本は 4 件（`smoke` / `sales` / `hr` / `maint`）。
+**`ls demos` の出力と食い違っていたら、そちらを信じて対象を足し引きすること。**
 
 ```bash
-rm -rf demos/smoke demos/sales demos/hr
+rm -rf demos/smoke demos/sales demos/hr demos/maint
 ```
 
 続けて 2 か所を直す。
